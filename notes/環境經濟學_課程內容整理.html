@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>環境經濟學課程筆記｜國立臺灣海洋大學</title>
+<style>
+/* ── 基礎重置 ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  background: #f5f6f8;
+  color: #2d3748;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── 進度條 ── */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, #2d9b6f, #38b2ac);
+  width: 0%; z-index: 1000;
+  transition: width 0.1s;
+}
+
+/* ── 側邊導覽列 ── */
+#sidebar {
+  width: 270px; min-width: 270px;
+  background: #1a2332;
+  height: 100vh;
+  position: fixed; top: 0; left: 0;
+  overflow-y: auto;
+  z-index: 100;
+  display: flex; flex-direction: column;
+}
+#sidebar-header {
+  padding: 20px 16px 16px;
+  background: #141c28;
+  border-bottom: 1px solid #2d3f55;
+}
+#sidebar-header h1 {
+  font-size: 0.85rem; font-weight: 700;
+  color: #81e6d9; line-height: 1.4;
+  letter-spacing: 0.05em;
+}
+#sidebar-header p {
+  font-size: 0.72rem; color: #718096; margin-top: 4px;
+}
+
+/* 搜尋框 */
+#search-wrap {
+  padding: 12px 12px 8px;
+  background: #1a2332;
+  border-bottom: 1px solid #2d3f55;
+}
+#search-input {
+  width: 100%; padding: 7px 10px;
+  background: #243044; border: 1px solid #2d4a6b;
+  border-radius: 6px; color: #e2e8f0; font-size: 0.8rem;
+  outline: none;
+}
+#search-input::placeholder { color: #4a6280; }
+#search-input:focus { border-color: #38b2ac; }
+
+/* 導覽項目 */
+#nav { padding: 8px 0 20px; flex: 1; }
+.nav-group-label {
+  font-size: 0.65rem; font-weight: 700;
+  color: #4a6280; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 14px 16px 4px;
+}
+.nav-item {
+  display: block; padding: 7px 16px;
+  font-size: 0.8rem; color: #a0aec0;
+  text-decoration: none; cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+.nav-item:hover { color: #e2e8f0; background: #243044; }
+.nav-item.active { color: #81e6d9; border-left-color: #38b2ac; background: #1e2f42; }
+.nav-item.type-intro { border-left-color: transparent; }
+.nav-item.type-intro.active { border-left-color: #667eea; color: #a78bfa; }
+.nav-item.type-supp.active { border-left-color: #ed8936; color: #fbd38d; }
+
+/* ── 主要內容區 ── */
+#main {
+  margin-left: 270px;
+  flex: 1;
+  max-width: calc(100% - 270px);
+}
+
+/* 頂部標題列 */
+#topbar {
+  background: linear-gradient(135deg, #1a4d3a 0%, #2d6a4f 50%, #1a4d3a 100%);
+  padding: 36px 48px 32px;
+  color: white;
+}
+#topbar h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: 0.02em; }
+#topbar p { font-size: 0.9rem; color: #a7f3d0; margin-top: 8px; }
+#topbar .meta { margin-top: 16px; display: flex; gap: 20px; flex-wrap: wrap; }
+#topbar .badge {
+  background: rgba(255,255,255,0.15); border-radius: 20px;
+  padding: 4px 12px; font-size: 0.78rem; color: #d1fae5;
+}
+
+/* 內容容器 */
+#content { padding: 32px 48px 80px; }
+
+/* ── 章節卡片 ── */
+.chapter {
+  background: white; border-radius: 12px;
+  margin-bottom: 28px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden;
+  scroll-margin-top: 20px;
+}
+
+/* 章節標題列 */
+.chapter-header {
+  padding: 18px 28px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.chapter-header:hover { filter: brightness(1.05); }
+.chapter-num {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 800; color: white; flex-shrink: 0;
+}
+.chapter-title { font-size: 1.05rem; font-weight: 700; flex: 1; }
+.chapter-toggle {
+  font-size: 1rem; color: rgba(255,255,255,0.7);
+  transition: transform 0.25s;
+}
+.chapter.collapsed .chapter-toggle { transform: rotate(-90deg); }
+
+/* 章節類型色彩 */
+.type-intro .chapter-header { background: linear-gradient(135deg, #4c51bf, #667eea); color: white; }
+.type-intro .chapter-num { background: rgba(255,255,255,0.25); color: white; }
+.type-main .chapter-header { background: linear-gradient(135deg, #276749, #38a169); color: white; }
+.type-main .chapter-num { background: rgba(255,255,255,0.25); color: white; }
+.type-supp .chapter-header { background: linear-gradient(135deg, #c05621, #ed8936); color: white; }
+.type-supp .chapter-num { background: rgba(255,255,255,0.25); color: white; }
+.type-ref .chapter-header { background: linear-gradient(135deg, #553c9a, #805ad5); color: white; }
+.type-ref .chapter-num { background: rgba(255,255,255,0.25); color: white; }
+
+/* 章節內容體 */
+.chapter-body {
+  padding: 24px 28px 28px;
+  border-top: 1px solid #f0f0f0;
+}
+.chapter.collapsed .chapter-body { display: none; }
+
+/* ── 內容排版 ── */
+.section-title {
+  font-size: 0.95rem; font-weight: 700;
+  color: #2d6a4f; margin: 22px 0 10px;
+  padding-left: 10px;
+  border-left: 4px solid #38a169;
+}
+.section-title:first-child { margin-top: 0; }
+
+p, .para { margin-bottom: 10px; line-height: 1.75; font-size: 0.92rem; }
+
+ul.notes-list { list-style: none; padding-left: 0; margin-bottom: 12px; }
+ul.notes-list li {
+  padding: 4px 0 4px 20px;
+  position: relative; font-size: 0.9rem; line-height: 1.7;
+  color: #374151;
+}
+ul.notes-list li::before {
+  content: "·"; position: absolute; left: 6px;
+  color: #38a169; font-weight: 700; font-size: 1.1rem;
+}
+ul.notes-list li.sub {
+  padding-left: 38px; color: #4b5563;
+}
+ul.notes-list li.sub::before { left: 22px; color: #6b7280; }
+
+ol.notes-ol {
+  padding-left: 22px; margin-bottom: 12px;
+}
+ol.notes-ol li {
+  padding: 3px 0; font-size: 0.9rem; line-height: 1.7;
+}
+
+/* 公式 */
+.formula-box {
+  background: #f0fff4; border: 1px solid #9ae6b4;
+  border-radius: 8px; padding: 12px 16px;
+  margin: 12px 0; font-family: "Courier New", monospace;
+  font-size: 0.88rem; color: #276749;
+}
+
+/* 表格 */
+.table-wrap { overflow-x: auto; margin: 14px 0; }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.87rem;
+}
+thead th {
+  background: #2d6a4f; color: white;
+  padding: 10px 14px; text-align: left;
+  font-weight: 600; font-size: 0.85rem;
+}
+tbody tr:nth-child(odd) { background: #f9fafb; }
+tbody tr:nth-child(even) { background: #ffffff; }
+tbody tr:hover { background: #f0fff4; }
+td { padding: 9px 14px; border-bottom: 1px solid #e5e7eb; line-height: 1.5; }
+
+/* 圖片區 */
+.img-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px; margin: 16px 0;
+}
+.img-card {
+  border: 1px solid #e5e7eb; border-radius: 8px;
+  overflow: hidden; cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+  background: #fafafa;
+}
+.img-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); transform: translateY(-2px); }
+.img-card img { width: 100%; height: 160px; object-fit: cover; display: block; }
+.img-card .img-caption {
+  padding: 6px 10px; font-size: 0.75rem; color: #6b7280;
+  background: white;
+}
+
+/* Lightbox */
+#lightbox {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88); z-index: 2000;
+  align-items: center; justify-content: center;
+  flex-direction: column;
+}
+#lightbox.open { display: flex; }
+#lightbox img {
+  max-width: 90vw; max-height: 85vh;
+  border-radius: 8px; box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+}
+#lightbox-caption {
+  color: #cbd5e0; font-size: 0.85rem; margin-top: 12px;
+}
+#lightbox-close {
+  position: absolute; top: 20px; right: 28px;
+  color: white; font-size: 2rem; cursor: pointer;
+  background: none; border: none; line-height: 1;
+}
+#lightbox-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 100%; display: flex; justify-content: space-between;
+  padding: 0 16px; pointer-events: none;
+}
+.lb-btn {
+  background: rgba(255,255,255,0.15); border: none;
+  color: white; font-size: 2rem; width: 48px; height: 48px;
+  border-radius: 50%; cursor: pointer; pointer-events: all;
+  transition: background 0.2s;
+}
+.lb-btn:hover { background: rgba(255,255,255,0.3); }
+
+/* 關鍵詞高亮 */
+.highlight { background: #fef08a; border-radius: 3px; padding: 0 2px; }
+
+/* ── 搜尋結果提示 ── */
+#search-results-bar {
+  background: #fffbeb; border-bottom: 1px solid #fcd34d;
+  padding: 8px 48px; font-size: 0.85rem; color: #92400e;
+  display: none;
+}
+
+/* ── 響應式 ── */
+@media (max-width: 900px) {
+  #sidebar { transform: translateX(-270px); transition: transform 0.3s; }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; max-width: 100%; }
+  #content { padding: 20px 20px 60px; }
+  #topbar { padding: 24px 20px 20px; }
+  #topbar h1 { font-size: 1.4rem; }
+  #menu-btn { display: flex; }
+}
+#menu-btn {
+  display: none; position: fixed; bottom: 20px; right: 20px;
+  background: #38a169; color: white; border: none;
+  width: 52px; height: 52px; border-radius: 50%;
+  font-size: 1.4rem; cursor: pointer; z-index: 150;
+  align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* 返回頂部 */
+#back-top {
+  position: fixed; bottom: 28px; right: 28px;
+  background: #2d6a4f; color: white; border: none;
+  width: 44px; height: 44px; border-radius: 50%;
+  font-size: 1.2rem; cursor: pointer; z-index: 150;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  opacity: 0; transition: opacity 0.3s;
+  display: flex; align-items: center; justify-content: center;
+}
+#back-top.visible { opacity: 1; }
+
+/* 標籤 */
+.tag {
+  display: inline-block; font-size: 0.72rem;
+  padding: 2px 8px; border-radius: 12px; margin: 2px;
+  font-weight: 600;
+}
+.tag-green { background: #d1fae5; color: #065f46; }
+.tag-blue  { background: #dbeafe; color: #1e40af; }
+.tag-orange{ background: #ffedd5; color: #9a3412; }
+.tag-purple{ background: #ede9fe; color: #5b21b6; }
+
+/* callout 框 */
+.callout {
+  border-radius: 8px; padding: 14px 16px; margin: 14px 0;
+  font-size: 0.9rem; line-height: 1.7;
+  border-left: 4px solid;
+}
+.callout-green  { background: #f0fff4; border-color: #38a169; color: #276749; }
+.callout-blue   { background: #ebf8ff; border-color: #3182ce; color: #1a365d; }
+.callout-orange { background: #fffaf0; border-color: #ed8936; color: #7b341e; }
+.callout-red    { background: #fff5f5; border-color: #e53e3e; color: #742a2a; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- 側邊導覽 -->
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h1>🌿 環境經濟學課程筆記</h1>
+    <p>國立臺灣海洋大學・永續發展研究所</p>
+  </div>
+  <div id="search-wrap">
+    <input id="search-input" type="text" placeholder="🔍 搜尋關鍵字…">
+  </div>
+  <div id="nav">
+    <div class="nav-group-label">緒論</div>
+    <a class="nav-item type-intro" data-target="ch-intro1">供給與需求</a>
+    <a class="nav-item type-intro" data-target="ch-intro2">資訊不對稱</a>
+    <a class="nav-item type-intro" data-target="ch-intro3">生產與成本</a>
+    <div class="nav-group-label">主課程</div>
+    <a class="nav-item" data-target="ch-01">第一章・環境經濟與成本效益分析</a>
+    <a class="nav-item" data-target="ch-01n">第一章補充・課堂筆記精要</a>
+    <a class="nav-item" data-target="ch-02">第二章・成本效益分析之理論基礎</a>
+    <a class="nav-item" data-target="ch-03">第三章・環境保護成本估計理論</a>
+    <a class="nav-item" data-target="ch-04">第四章・成本效益分析執行步驟</a>
+    <a class="nav-item" data-target="ch-05">第五章・汙染物排放擴散反應影響</a>
+    <a class="nav-item" data-target="ch-06">第六章・市場價值評估法</a>
+    <a class="nav-item" data-target="ch-07">第七章・替代市場價值評估法</a>
+    <a class="nav-item" data-target="ch-08">第八章・假設市場評估法（CVM）</a>
+    <a class="nav-item" data-target="ch-08s">第八章補充・森林遊憩效益</a>
+    <a class="nav-item" data-target="ch-09">第九章・效益移轉法</a>
+    <a class="nav-item" data-target="ch-10">第十章・空汙防治成本估計</a>
+    <a class="nav-item" data-target="ch-11">第十一章・空汙對健康之影響</a>
+    <a class="nav-item" data-target="ch-12">第十二章・空汙對生態系之影響</a>
+    <a class="nav-item" data-target="ch-13">第十三章・空汙對農業之影響</a>
+    <div class="nav-group-label">補充教材</div>
+    <a class="nav-item type-supp" data-target="ch-s1">補充一・氣候治理與碳風險</a>
+    <a class="nav-item type-supp" data-target="ch-s2">補充二・總量管制排放交易（ETS）</a>
+    <a class="nav-item type-supp" data-target="ch-s4">補充四・碳環境稅費</a>
+    <a class="nav-item type-supp" data-target="ch-s5">補充五・企業內部碳定價</a>
+    <div class="nav-group-label">專題教材</div>
+    <a class="nav-item type-supp" data-target="ch-blue">主題3-2・藍色經濟與永續發展</a>
+    <a class="nav-item type-supp" data-target="ch-wind">專題・離岸風電與環境影響評估</a>
+    <a class="nav-item type-supp" data-target="ch-haigong">專題演講・海功號南極探索</a>
+    <div class="nav-group-label">作業練習</div>
+    <a class="nav-item type-supp" data-target="ch-hw">作業・供需分析練習題</a>
+    <div class="nav-group-label">速查表</div>
+    <a class="nav-item type-supp" data-target="ch-ref">重要概念速查表</a>
+  </div>
+</nav>
+
+<!-- 主內容 -->
+<div id="main">
+  <div id="search-results-bar"></div>
+  <div id="topbar">
+    <h1>🌿 環境經濟學課程筆記</h1>
+    <p>授課教授：莊慶達 名譽暨榮譽講座教授</p>
+    <div class="meta">
+      <span class="badge">📚 國立臺灣海洋大學 永續發展研究所</span>
+      <span class="badge">🗓️ 114 學年度</span>
+      <span class="badge">📑 26 個章節</span>
+      <span class="badge">🖼️ 181 張圖表</span>
+    </div>
+  </div>
+  <div id="content">
+
+<section class="chapter type-intro" id="ch-intro1">
+  <div class="chapter-header">
+    <div class="chapter-num">緒①</div>
+    <div class="chapter-title">緒論一：供給與需求（Demand and Supply）</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、競爭市場（Competitive Market）</div><ul class="notes-list"><li>市場：任何使買方與賣方聚集的安排，可以是實體場所或遍布各地的買賣雙方。</li><li>競爭市場：存在眾多買方與賣方，任何單一個體無法影響價格。</li></ul><div class="section-title">二、需求（Demand）</div><ul class="notes-list"><li>需求量（Quantity Demanded）：在特定時期、特定價格下，消費者「願意且能夠」購買的數量。</li><li>需求法則（Law of Demand）：其他條件不變，價格上漲則需求量減少；價格下跌則需求量增加。</li><li>需求曲線：描述需求量與價格之間關係的圖形，向右下方傾斜。</li><li>需求量變動 vs. 需求變動</li></ul><ul class="notes-list"><li class="sub">需求量變動：由商品本身價格改變引起，沿需求曲線移動。</li><li class="sub">需求變動：由其他因素改變引起，需求曲線整體移動（左移或右移）。</li></ul><ul class="notes-list"><li>影響需求的因素</li></ul><ul class="notes-list"><li class="sub">替代品（Substitute）：可相互取代的商品；替代品價格上漲，本商品需求增加。</li><li class="sub">互補品（Complement）：搭配消費的商品；互補品價格上漲，本商品需求減少。</li><li class="sub">預期未來價格、所得（正常財 vs. 劣等財）、買者人數、偏好。</li></ul><div class="section-title">三、供給（Supply）</div><ul class="notes-list"><li>供給量（Quantity Supplied）：在特定時期、特定價格下，生產者「願意且能夠」出售的數量。</li><li>供給法則（Law of Supply）：其他條件不變，價格上漲則供給量增加。</li><li>供給曲線：描述供給量與價格關係的圖形，向右上方傾斜。</li><li>影響供給因素：生產相關品價格、投入要素價格、預期未來價格、賣方人數、生產力（技術進步）。</li></ul><div class="section-title">四、市場均衡（Market Equilibrium）</div><ul class="notes-list"><li>均衡：需求量等於供給量時達到均衡；均衡價格是使量相等的價格。</li><li>市場力量法則：存在短缺時，價格上漲；存在供過於求時，價格下跌。</li><li>需求增加 → 均衡價格與均衡數量均增加；供給增加 → 均衡價格下降，均衡數量增加。</li></ul><ul class="notes-list"><li class="sub">需求供給均增加 → 均衡數量增加，價格變化不確定。</li><li class="sub">需求增加、供給減少 → 均衡價格上漲，均衡數量不確定。</li></ul><div class="section-title">五、考題重點</div><div class="callout callout-blue">辨別哪些因素導致需求曲線移動（非價格因素），哪些僅使需求量沿線移動（價格本身）。<br>分析石油短缺、金融危機、政策（如碳稅）對市場均衡的影響。</div>
+
+<div class="section-title">📷 原始講義圖表（共 16/23 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/緒論一_供給與需求_s02_img02.png" alt="投影片 2　Why does tuition keep rising? | <number>" loading="lazy"><div class="img-caption">投影片 2　Why does tuition keep rising? | <number></div></div><div class="img-card"><img src="images/緒論一_供給與需求_s03_img03.jpg" alt="投影片 3　<number> | Why did the Price of Coffee Rise in 201" loading="lazy"><div class="img-caption">投影片 3　<number> | Why did the Price of Coffee Rise in 201</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s04_img04.png" alt="投影片 4　COMPETITIVE MARKETS | A market is any arrangement" loading="lazy"><div class="img-caption">投影片 4　COMPETITIVE MARKETS | A market is any arrangement</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s11_img21.png" alt="投影片 11　1.1  Demand | 1.	When demand decreases, the demand" loading="lazy"><div class="img-caption">投影片 11　1.1  Demand | 1.	When demand decreases, the demand</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s14_img25.png" alt="投影片 14　1.1  Demand | <number>" loading="lazy"><div class="img-caption">投影片 14　1.1  Demand | <number></div></div><div class="img-card"><img src="images/緒論一_供給與需求_s14_img26.png" alt="投影片 14　1.1  Demand | <number>" loading="lazy"><div class="img-caption">投影片 14　1.1  Demand | <number></div></div><div class="img-card"><img src="images/緒論一_供給與需求_s20_img47.png" alt="投影片 20　<number> | Change in Quantity Supplied Versus Chan" loading="lazy"><div class="img-caption">投影片 20　<number> | Change in Quantity Supplied Versus Chan</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s20_img48.png" alt="投影片 20　<number> | Change in Quantity Supplied Versus Chan" loading="lazy"><div class="img-caption">投影片 20　<number> | Change in Quantity Supplied Versus Chan</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s23_img57.png" alt="投影片 23　1.3  Market Equilibrium | market equilibrium-
+surp" loading="lazy"><div class="img-caption">投影片 23　1.3  Market Equilibrium | market equilibrium-
+surp</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s23_img58.png" alt="投影片 23　1.3  Market Equilibrium | market equilibrium-
+surp" loading="lazy"><div class="img-caption">投影片 23　1.3  Market Equilibrium | market equilibrium-
+surp</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s24_img63.png" alt="投影片 24　1.3  Market Equilibrium | At 75 cents a bottle:
+1." loading="lazy"><div class="img-caption">投影片 24　1.3  Market Equilibrium | At 75 cents a bottle:
+1.</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s24_img64.png" alt="投影片 24　1.3  Market Equilibrium | At 75 cents a bottle:
+1." loading="lazy"><div class="img-caption">投影片 24　1.3  Market Equilibrium | At 75 cents a bottle:
+1.</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s25_img67.png" alt="投影片 25　1.3  Market Equilibrium | 1. An increase in demand" loading="lazy"><div class="img-caption">投影片 25　1.3  Market Equilibrium | 1. An increase in demand</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s25_img68.png" alt="投影片 25　1.3  Market Equilibrium | 1. An increase in demand" loading="lazy"><div class="img-caption">投影片 25　1.3  Market Equilibrium | 1. An increase in demand</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s25_img69.png" alt="投影片 25　1.3  Market Equilibrium | 1. An increase in demand" loading="lazy"><div class="img-caption">投影片 25　1.3  Market Equilibrium | 1. An increase in demand</div></div><div class="img-card"><img src="images/緒論一_供給與需求_s26_img72.png" alt="投影片 26　1.3  Market Equilibrium | 1. A decrease in demand" loading="lazy"><div class="img-caption">投影片 26　1.3  Market Equilibrium | 1. A decrease in demand</div></div></div>
+  </div>
+</section>
+<section class="chapter type-intro" id="ch-intro2">
+  <div class="chapter-header">
+    <div class="chapter-num">緒②</div>
+    <div class="chapter-title">緒論二：資訊不對稱（Markets with Private Information）</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、基本概念</div><ul class="notes-list"><li>私人信息（Private Information）：市場上部分參與者擁有而其他人不具備的相關交易信息。</li><li>不對稱信息（Asymmetric Information）：買方或賣方之一擁有私人信息的情況。</li></ul><div class="section-title">二、檸檬問題（Lemons Problem）</div><p class="para">當買方無法區分優良品與劣質品（檸檬，即次品）時，市場上劣質品過多，最終優良品可能從市場消失。</p><ul class="notes-list"><li>逆向選擇（Adverse Selection）：高風險者比低風險者更傾向於購買保險或進入市場。</li><li>解決方法：</li></ul><ul class="notes-list"><li class="sub">信號傳遞（Signaling）：知情方透過行動向不知情方傳遞信息，如二手車經銷商提供保固（warranty）。</li><li class="sub">篩選（Screening）：不知情方為知情方提供揭露私人信息的誘因，如「無索賠折扣」與「自負額」。</li></ul><div class="section-title">三、均衡類型</div><div class="table-wrap"><table><thead><tr><th>均衡類型</th><th>說明</th></tr></thead><tbody><tr><td>匯集均衡（Pooling Equilibrium）</td><td>信息不對稱下，所有人支付相同保費，無法區分風險高低。</td></tr><tr><td>分離均衡（Separating Equilibrium）</td><td>透過篩選機制，高風險者支付較高保費，低風險者支付較低保費。</td></tr></tbody></table></div><div class="section-title">四、保險市場中的信息問題</div><ul class="notes-list"><li>逆向選擇：高風險者更想購買保險。</li><li>道德風險（Moral Hazard）：購買保險後，被保者減少謹慎行為，對保險公司造成不利。</li><li>解決方式：無索賠折扣、自負額（免賠額）。</li></ul><div class="section-title">五、醫療保健市場</div><ul class="notes-list"><li>疫苗接種具有正外部性，邊際社會效益超過邊際私人效益。</li><li>多數國家採公共醫療體系，政府補貼醫療保健。</li></ul>
+
+<div class="section-title">📷 原始講義圖表（共 10/10 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/緒論二_資訊不對稱_s02_img02.png" alt="投影片 2　<number> | How do you avoid buying a lemon?" loading="lazy"><div class="img-caption">投影片 2　<number> | How do you avoid buying a lemon?</div></div><div class="img-card"><img src="images/緒論二_資訊不對稱_s06_img10.png" alt="投影片 6　2.1  THE LEMONS PROBLEM AND ITS SOLUTION | <number" loading="lazy"><div class="img-caption">投影片 6　2.1  THE LEMONS PROBLEM AND ITS SOLUTION | <number</div></div><div class="img-card"><img src="images/緒論二_資訊不對稱_s08_img17.png" alt="投影片 8　2.1  THE LEMONS PROBLEM AND ITS SOLUTION | <number" loading="lazy"><div class="img-caption">投影片 8　2.1  THE LEMONS PROBLEM AND ITS SOLUTION | <number</div></div><div class="img-card"><img src="images/緒論二_資訊不對稱_s11_img26.png" alt="投影片 11　2.2  INFORMATION PROBLEMS IN INSURANCE MARKETS | <" loading="lazy"><div class="img-caption">投影片 11　2.2  INFORMATION PROBLEMS IN INSURANCE MARKETS | <</div></div><div class="img-card"><img src="images/緒論二_資訊不對稱_s13_img33.png" alt="投影片 13　2.3   HEALTH-CARE MARKETS | <number>" loading="lazy"><div class="img-caption">投影片 13　2.3   HEALTH-CARE MARKETS | <number></div></div><div class="img-card"><img src="images/緒論二_資訊不對稱_s15_img34.png" alt="投影片 15　The used-car market in the United States might hav" loading="lazy"><div class="img-caption">投影片 15　The used-car market in the United States might hav</div></div><div class="img-card"><img src="images/緒論二_資訊不對稱_s15_img35.png" alt="投影片 15　The used-car market in the United States might hav" loading="lazy"><div class="img-caption">投影片 15　The used-car market in the United States might hav</div></div><div class="img-card"><img src="images/緒論二_資訊不對稱_s16_img36.png" alt="投影片 16　<number> | 練習題目" loading="lazy"><div class="img-caption">投影片 16　<number> | 練習題目</div></div><div class="img-card"><img src="images/緒論二_資訊不對稱_s17_img37.png" alt="投影片 17　練習題目 | <number>" loading="lazy"><div class="img-caption">投影片 17　練習題目 | <number></div></div><div class="img-card"><img src="images/緒論二_資訊不對稱_s18_img38.png" alt="投影片 18　練習題目 | <number>" loading="lazy"><div class="img-caption">投影片 18　練習題目 | <number></div></div></div>
+  </div>
+</section>
+<section class="chapter type-intro" id="ch-intro3">
+  <div class="chapter-header">
+    <div class="chapter-num">緒③</div>
+    <div class="chapter-title">緒論三：生產與成本（Production and Cost）</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、經濟成本與利潤</div><ul class="notes-list"><li>顯性成本（Explicit Cost）：以金錢直接支付的成本。</li><li>隱性成本（Implicit Cost）：不以金錢直接支付的機會成本（含經濟折舊、自有資源成本）。</li><li>正常利潤（Normal Profit）：企業主提供企業行為的報酬，屬隱性成本。</li></ul><div class="formula-box">經濟利潤 = 總收入 − 機會成本（顯性成本 + 隱性成本）<br>會計利潤 = 總收入 − 顯性成本</div><div class="section-title">二、短期生產</div><ul class="notes-list"><li>短期（Short Run）：部分生產要素固定，只有勞動可以調整。</li><li>長期（Long Run）：所有生產要素均可調整。</li><li>沉沒成本（Sunk Cost）：已發生無法回收的成本，機會成本為零，不應納入決策考量。</li></ul><div class="table-wrap"><table><thead><tr><th>指標</th><th>定義</th></tr></thead><tbody><tr><td>總產量（TP）</td><td>給定期間內，雇用特定勞動量所生產的總數量。</td></tr><tr><td>邊際產量（MP）</td><td>增加一單位勞動，總產量的增加量。</td></tr><tr><td>平均產量（AP）</td><td>總產量除以勞動量，即生產力。</td></tr></tbody></table></div><ul class="notes-list"><li>邊際報酬遞增：生產初期，追加勞動帶來更高邊際產量（專業化與分工）。</li><li>報酬遞減法則（Law of Diminishing Returns）：固定資本不變，持續增加勞動，最終邊際產量將遞減。</li></ul><div class="section-title">三、短期成本</div><div class="formula-box">TC = TFC + TVC<br>ATC = AFC + AVC<br>MC = ΔTC / ΔQ</div><ul class="notes-list"><li>AFC 隨產量增加而持續下降。</li><li>AVC 曲線呈 U 型。</li><li>ATC 曲線呈 U 型（AFC 與 AVC 力量的結合）。</li><li>MC 曲線呈 U 型，且穿越 AVC 與 ATC 的最低點。</li><li>邊際產量上升時，邊際成本下降；平均產量最大時，平均變動成本最低。</li></ul><div class="section-title">四、成本曲線的移動</div><div class="table-wrap"><table><thead><tr><th>事件</th><th>移動效果</th></tr></thead><tbody><tr><td>技術進步</td><td>TP、MP、AP 曲線上移；AC、MC 曲線下移。</td></tr><tr><td>變動要素價格上升</td><td>TC、ATC、AVC、MC 上移；TFC、AFC 不變。</td></tr><tr><td>固定要素價格上升</td><td>TC、TFC、AFC 上移；AVC、MC 不變。</td></tr></tbody></table></div><div class="section-title">五、長期成本</div><ul class="notes-list"><li>長期平均成本曲線（LRAC）：各產量水準下，廠商調整所有要素後的最低平均總成本。</li><li>規模經濟（Economies of Scale）：產量增加幅度 > 投入增加幅度，LRAC 遞減。</li><li>規模不經濟（Diseconomies of Scale）：產量增加幅度 < 投入增加幅度，LRAC 遞增。</li><li>固定規模報酬（Constant Returns to Scale）：LRAC 不變。</li></ul>
+
+<div class="section-title">📷 原始講義圖表（共 6/6 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/緒論三_生產與成本_s02_img02.png" alt="投影片 2　Which store has the lower costs: Wal-Mart or 7-Ele" loading="lazy"><div class="img-caption">投影片 2　Which store has the lower costs: Wal-Mart or 7-Ele</div></div><div class="img-card"><img src="images/緒論三_生產與成本_s03_img03.png" alt="投影片 3　3.1  ECONOMIC COST AND PROFIT | <number>" loading="lazy"><div class="img-caption">投影片 3　3.1  ECONOMIC COST AND PROFIT | <number></div></div><div class="img-card"><img src="images/緒論三_生產與成本_s10_img39.png" alt="投影片 10　3.2  SHORT-RUN PRODUCTION | <number> | Average pro" loading="lazy"><div class="img-caption">投影片 10　3.2  SHORT-RUN PRODUCTION | <number> | Average pro</div></div><div class="img-card"><img src="images/緒論三_生產與成本_s12_img41.png" alt="投影片 12　3.3  SHORT-RUN COST | Marginal Cost：the change in" loading="lazy"><div class="img-caption">投影片 12　3.3  SHORT-RUN COST | Marginal Cost：the change in</div></div><div class="img-card"><img src="images/緒論三_生產與成本_s14_img43.png" alt="投影片 14　3.3  SHORT-RUN COST | Why the Average Total Cost C" loading="lazy"><div class="img-caption">投影片 14　3.3  SHORT-RUN COST | Why the Average Total Cost C</div></div><div class="img-card"><img src="images/緒論三_生產與成本_s20_img54.png" alt="投影片 20　Wal-Mart’s “small” supercenters measure 99,000 squ" loading="lazy"><div class="img-caption">投影片 20　Wal-Mart’s “small” supercenters measure 99,000 squ</div></div></div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-01">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.1</div>
+    <div class="chapter-title">第一章：環境經濟與成本效益分析</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、環境經濟分析的作用</div><p class="para">建立有系統的方法，改善政策與計畫的設計與執行，將環境因素納入經濟決策：</p><ul class="notes-list"><li>設計具有經濟理論基礎的政策與計畫</li><li>確定計畫或政策對社會和環境的影響</li><li>對環境和社會影響進行效益與成本評估</li><li>重新設計計畫以減少不利影響</li></ul><div class="section-title">二、成本效益分析的意義</div><ul class="notes-list"><li>社會成本效益分析（Social Benefit-Cost Analysis）：比較社會全體成員承擔的成本與享有的效益；效益 = 人類福利之改善；成本 = 機會成本。</li><li>成本有效性分析（Cost-Effectiveness Analysis）：不評估效益價值，僅比較不同方案達到同一目標的成本高低。</li><li>其他方法：環境影響評估、風險分析、環境會計等。</li></ul><div class="section-title">三、環境資源的價值</div><ul class="notes-list"><li>環境資源是資本、資產、存量，每年產生的服務是流量。</li><li>環境資源對人類的四種功能：</li></ul><ol class="notes-ol"><li>生產（Material Inputs）</li><li>維生（Life-Support Services）</li><li>舒適、寧適性（Amenity Services）</li><li>自淨（Assimilative Effects）</li></ol><ul class="notes-list"><li>非使用價值（Non-Use Value）：即便不使用該資源，人們也可能因道德或關懷而賦予的價值（如瀕危物種的存在價值）。</li></ul><div class="section-title">四、進行成本效益分析注意事項</div><div class="table-wrap"><table><thead><tr><th>概念</th><th>說明</th></tr></thead><tbody><tr><td>評估範圍界定</td><td>依決策者層級決定「社會」範圍（中央→全國，地方→轄區）</td></tr><tr><td>移轉性支付</td><td>稅收、補貼等不涉及實際資源使用，不應計入成本或效益</td></tr><tr><td>就業機會</td><td>完全就業下，增加就業非效益（有機會成本）；不完全就業下，機會成本可能為零</td></tr><tr><td>沉沒成本</td><td>機會成本為零，不納入分析</td></tr><tr><td>外部性</td><td>須估計外部成本與效益，加入內部成本效益得社會成本效益</td></tr><tr><td>邊際成本</td><td>應分析邊際成本與邊際效益，這是決策主要依據</td></tr><tr><td>With vs. Without</td><td>比較「有方案」與「無方案（基線）」，非 Before vs. After</td></tr><tr><td>影子價格</td><td>使用經濟/影子價格，而非受扭曲的財務價格</td></tr></tbody></table></div><div class="section-title">五、風險與不確定性</div><ul class="notes-list"><li>風險（Risk）：可以衡量的不確定性，知道發生機率。</li><li>不確定性（Uncertainty）：發生機率完全未知，可轉換成主觀機率的風險情況。</li><li>敏感度分析（Sensitivity Analysis）：使用各變數最樂觀與悲觀值計算成本與效益，找出對成本效益影響最大的變數。</li></ul><div class="section-title">六、分析師的倫理</div><div class="callout callout-orange"><strong>應做到：</strong>清楚說明課題與基線、考量多種可行方案、客觀第三者審查、依據學術理論客觀進行分析。<br><strong>應避免：</strong>扭曲基線定義、忽略某些方案或成本效益、受個人價值觀與政治立場影響。</div>
+
+<div class="section-title">📷 原始講義圖表（共 1/1 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/第一章_環境經濟與成本效益分析_s02_img02.png" alt="投影片 2　經濟發展與環境資源的互動 | 圖1-1　使用經濟分析工具連結環境與社會－經濟結構" loading="lazy"><div class="img-caption">投影片 2　經濟發展與環境資源的互動 | 圖1-1　使用經濟分析工具連結環境與社會－經濟結構</div></div></div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-01n">
+  <div class="chapter-header">
+    <div class="chapter-num">筆①</div>
+    <div class="chapter-title">第一章補充：課堂筆記精要（1150313）</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、經濟學與環境經濟學</div><ul class="notes-list"><li>經濟學研究人類如何在資源有限下做出選擇；核心命題是「稀缺性」——資源有限而欲望無窮，必須做出取捨（Trade-off）。</li><li>任何社會都必須回答三個基本問題：生產什麼？如何生產？為誰生產？</li><li>環境經濟學（Environmental Economics）：將經濟學原理應用於環境議題，研究經濟活動與自然環境的關係，並以經濟手段設計解決環境問題的機制。</li><li>三大核心概念：</li></ul><ul class="notes-list"><li class="sub">外部性（Externality）：經濟活動對第三方造成未反映於市場價格的影響。</li><li class="sub">市場失靈（Market Failure）：自由市場無法有效分配環境資源。</li><li class="sub">公共財（Public Goods）：環境資源具非排他性與非競爭性，易遭過度使用。</li></ul><div class="section-title">二、循環式政策設計四步驟</div><ul class="notes-list"><li><strong>Step 1　設計具經濟理論基礎的政策</strong>：依據福利經濟學、外部性理論、公共財理論、永續發展理論。</li><li><strong>Step 2　確定計劃對社會和環境的影響</strong></li><li><strong>Step 3　進行效益與成本評估（CBA）</strong>：含環境效益量化方法。</li><li><strong>Step 4　重新設計政策以減少不利影響</strong>：</li></ul><ul class="notes-list"><li class="sub">環境面：提高排放標準、調整環境稅率至社會邊際損害水準、設計生態補償機制。</li><li class="sub">社會面：收入中性的碳稅退還機制、轉型援助計劃、納入弱勢群體的參與式設計。</li></ul><div class="section-title">三、環境資源的價值結構</div><ul class="notes-list"><li>環境資源四大功能：生產投入、維生服務、舒適寧適、自淨能力。</li><li>存量、流量與折現價值：折現率越高，未來服務現值越低，越傾向短期開發；折現率越低，越傾向長期保育——「代際公平」因此成為核心議題。</li><li>總經濟價值（TEV）架構：使用價值＋非使用價值。</li></ul><div class="section-title">四、綠色 GDP</div><div class="callout callout-orange"><strong>傳統 GDP 的主要問題：</strong><br>砍伐森林 → GDP 上升，但未扣除森林資本的損失。<br>工廠排污 → GDP 上升，但未計入健康與環境損害。<br>清污支出 → GDP 上升，但僅是「防禦性支出」，非真正的福祉提升。</div><div class="section-title">五、CBA 執行要點</div><div class="table-wrap"><table><thead><tr><th>要點</th><th>說明</th></tr></thead><tbody><tr><td>評估範圍界定</td><td>首要步驟是明確界定「社會」範圍，由計劃決策者層級決定</td></tr><tr><td>移轉性支付</td><td>稅收、補貼、貸款返還等僅是社會內部所得重分配，不應計入社會成本或效益</td></tr><tr><td>就業效益</td><td>須正確評估，避免高估</td></tr><tr><td>沉沒成本</td><td>不應納入決策考量</td></tr><tr><td>外部性</td><td>須完整計算內部與外部成本效益</td></tr><tr><td>邊際分析</td><td>分析方案的邊際成本與邊際效益，是決策主要依據</td></tr></tbody></table></div><div class="section-title">六、通貨膨脹、折現率與影子價格</div><ul class="notes-list"><li>CBA 中不需要單獨預測通貨膨脹率：名目／實質兩種方式最終得到相同現值結果。</li><li>影子價格（Shadow Price）：應使用影子價格而非市場財務價格，以反映對整個社會的真實效益或成本。</li></ul><div class="section-title">七、敏感度分析（Sensitivity Analysis）</div><ul class="notes-list"><li>核心優點：不需要知道各變數的機率分布（與期望值分析最大區別）、操作直觀、可識別關鍵變數。</li><li>執行步驟：</li></ul><ol class="notes-ol"><li>確認基準情境（Base Case），計算基準 NPV</li><li>識別關鍵不確定變數（成本、效益、折現率、計劃壽命等）</li><li>設定各變數的樂觀值與悲觀值</li><li>逐一變動各變數，計算 NPV 變動幅度</li><li>識別影響最大的變數，提出風險管理建議</li></ol><div class="section-title">八、環境問題之根源（課堂板書）</div><ul class="notes-list"><li>環境問題的因果鏈：依課堂圖1-2「環境問題之根源與解決示意圖」梳理。</li><li>TR / TC 模型：以總收益與總成本曲線分析環境資源的最適開採量，特別適用於漁業、林業等開放取用資源。</li></ul><div class="section-title">九、課程總結 Key Takeaways</div><div class="callout callout-green">① 環境資源具有真實經濟價值（使用＋非使用價值），必須納入決策。<br>② 市場失靈是環境問題根本原因，政府介入需以 CBA 為科學依據。<br>③ 社會 CBA 須同時包含內部與外部成本效益。<br>④ 應使用影子價格而非市場價格。<br>⑤ 邊際分析是核心工具：最適點在 MB = MC 處。<br>⑥ 避免三大錯誤：計入移轉性支付、高估就業效益、納入沉沒成本。<br>⑦ 敏感度分析是識別關鍵不確定因素的基本工具。</div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-02">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.2</div>
+    <div class="chapter-title">第二章：成本效益分析之理論基礎</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、私人部門與公共部門 CBA 比較</div><ul class="notes-list"><li>差異一：決策觀點不同（私人→自身利潤；公共→社會全體福祉）。</li><li>差異二：分析對象不同——公共部門常牽涉非市場型態之財貨或勞務（如環境資源數量與品質改變的政策）。</li></ul><div class="section-title">二、公共部門 CBA 之理論依據</div><ul class="notes-list"><li><strong>柏拉圖最適境界（Pareto Optimality）</strong>：社會不可能在不損及某些人效用下提升其他人之效用；經濟效率指資源在生產、消費及二者結合時同時達到均衡。</li><li><strong>柏拉圖改善（Pareto Improvement）</strong>：一項變動使至少一人效用提升，且無任何人效用下降。</li><li><strong>柏拉圖較優（Pareto Superior）</strong>：狀態 B 比 A 較優 = 從 A 移到 B 是柏拉圖改善。</li><li><strong>Kaldor-Hicks 補償原則</strong>：若獲利者的利得 &gt; 受損者的損失，獲利者「理論上」能補償受損者且仍有剩餘 ⇒ 社會淨效益 &gt; 0 ⇒ 政策具效率正當性。可評判柏拉圖準則無法判斷的變動。</li></ul><div class="table-wrap"><table><thead><tr><th>概念</th><th>內涵</th></tr></thead><tbody><tr><td>效用可能前緣（UPF）</td><td>給定資源與技術下，兩人效用的最大可能組合；曲線上＝柏拉圖最適，曲線內＝仍可改善，曲線外＝不可達</td></tr><tr><td>大總效用邊界（GUF）</td><td>PPC 上每一生產點對應一條 UPF，所有 UPF 的外包絡線即為 GUF</td></tr><tr><td>社會最大福利 W*</td><td>GUF 上有無限多柏拉圖最適點，需以社會福利函數（SWF）等福利曲線與 GUF 的切點 E* 決定</td></tr></tbody></table></div><div class="section-title">三、效益衡量之基礎與指標</div><div class="formula-box">W = ΣWTP − ΣWTA = 消費者剩餘（CS）+ 生產者剩餘（PS）<br>Max NB = Σ Bᵢ − Σ Cᵢ</div><ul class="notes-list"><li>最大社會產出條件：<strong>MB = MC</strong>，此時社會總效益（CS + PS）最大。</li></ul><ul class="notes-list"><li class="sub">Q &lt; Q*：MB &gt; MC → 多生產仍有淨效益，應繼續生產。</li><li class="sub">Q &gt; Q*：MB &lt; MC → 多生產反而造成損失，應停止。</li><li class="sub">完全競爭市場中 P = MC 自動實現此條件；市場失靈（如污染外部性）導致過度生產與無謂損失（DWL）。</li></ul><ul class="notes-list"><li><strong>HCS、HCV、HEV 三種福利衡量指標</strong>：衡量財貨價格因計畫執行所造成改變的效果。大小關係（正常財、改善情境）：HCV ≤ HCS ≤ HEV；所得效果趨近於零時，三者近似，直接用 HCS 即可。</li><li><strong>補償剩餘（CS_c）與對等剩餘（ES）</strong>：專為非市場財貨（數量固定的品質變動）設計，CS_c ≤ ES（正常財）。與 HCV/HEV 的關鍵差異：HCV/HEV 針對「價格變動」；CS_c/ES 針對「數量固定的品質變動」。</li><li>非市場財貨無法以需求供給曲線對應 WTP/WTA，須以其他評估方法求得（見第六～九章）。</li></ul><div class="section-title">四、成本與效益的分配</div><ul class="notes-list"><li>效率準則（NB &gt; 0）只回答「政策對社會整體值得嗎？」還需關注：誰得益？誰受損？何時得益？何時受損？</li><li>跨期分配與折現：</li></ul><div class="formula-box">PV = Bₜ / (1 + r)ᵗ　　（r = 折現率，t = 年數）</div><div class="callout callout-orange"><strong>折現率警示：</strong>100 年後的 1,000 元——r=2% 時現值約 138 元；r=10% 時現值僅約 0.07 元。折現率選擇可完全逆轉 BCA 結論。</div><ul class="notes-list"><li>分配加權 CBA：Max NB* = Σ wᵢBᵢ − Σ wⱼCⱼ，其中弱勢群體 w &gt; 1、高所得群體 w &lt; 1，使淨效益計算更能反映社會公平偏好。</li></ul>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-03">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.3</div>
+    <div class="chapter-title">第三章：環境保護成本估計理論</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、機會成本觀點</div><ul class="notes-list"><li>經濟學對污染防制成本採用「機會成本」為概念。</li><li>完全競爭市場下，機會成本等於市場價格；不完全市場下則不等。</li></ul><div class="section-title">二、污染防制成本概念</div><div class="table-wrap"><table><thead><tr><th>成本種類</th><th>說明</th><th>公式</th></tr></thead><tbody><tr><td>固定成本（FC）</td><td>不隨防制量改變的成本（如設備、土地）</td><td>—</td></tr><tr><td>變動成本（VC）</td><td>隨防制量增加而增加的成本（耗材、藥品、水電）</td><td>—</td></tr><tr><td>總成本（TC）</td><td>全部防制成本</td><td>TC = TFC + TVC</td></tr><tr><td>年防治資本成本</td><td>資本成本年化</td><td>防治資本成本 × 資本還原因子（CRF）</td></tr><tr><td>年總成本</td><td>—</td><td>年防治資本成本 + 年防治變動成本</td></tr></tbody></table></div><div class="section-title">三、決策原則</div><div class="callout callout-green">是否從事污染防制？→ 比較「總效益 vs. 總成本」<br>應減少多少污染量？→ 在「邊際效益 = 邊際成本」處決定最適防制量</div><div class="section-title">四、社會防制成本</div><ul class="notes-list"><li>社會邊際防制成本曲線（MSC）：將所有個別污染源的邊際防制成本曲線水平加總。</li><li>除污染源防制成本外，尚須包含政府行政成本。</li></ul><div class="section-title">五、防制成本估計對政策的重要性</div><div class="table-wrap"><table><thead><tr><th>情境</th><th>建議政策工具</th></tr></thead><tbody><tr><td>MC 斜率較小（MB 斜率較大）</td><td>選擇數量政策（管制排放量）→ 減少社會福利損失</td></tr><tr><td>MC 斜率較大（MB 斜率較小）</td><td>選擇價格政策（費率/稅率）→ 減少社會福利損失</td></tr></tbody></table></div><div class="section-title">六、台灣空污費案例</div><ul class="notes-list"><li>民國84年開徵空污費，第一階段針對硫氧化物（SOx），隨燃料油徵收。</li><li>第二階段擴大至 SOx、NOx、粒狀污染物（Particulate）、揮發性有機物（VOC），隨排放量徵收。</li><li>台灣大排放源數量少，但排放量佔總量比例高（如粒狀物前234家佔89.5%總排放量）。</li></ul>
+
+<div class="section-title">📷 原始講義圖表（共 1/1 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/第三章_環境保護成本估計理論_s27_img02.jpg" alt="投影片 27　https://esg.businesstoday.com.tw/article/category/" loading="lazy"><div class="img-caption">投影片 27　https://esg.businesstoday.com.tw/article/category/</div></div></div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-04">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.4</div>
+    <div class="chapter-title">第四章：成本效益分析執行步驟</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、執行步驟概覽</div><ol class="notes-ol"><li>計畫相關之成本與效益項目的認定</li><li>成本與效益的衡量方法</li><li>成本與效益現值的計算（折現）</li><li>成本與效益比較後的計畫選擇準則</li></ol><div class="section-title">二、效益衡量方式</div><ul class="notes-list"><li>有市場價格的財貨：以市場價格為衡量依據。</li><li>無市場價格的財貨：須倚賴非市場評估方法（Non-Market Valuation）。</li><li>計畫之實質直接效果以「消費者剩餘」與「生產者剩餘」表示。</li><li>貨幣效果（次要效果）：由市場相對價格改變引起的重分配效果，不應重覆計算。</li></ul><div class="section-title">三、折現（Discount）</div><ul class="notes-list"><li>現在的成本或效益比未來的更重要。</li><li>折現率正值的理由：反應人們對時間的偏好（Time Preference）；代表資本的生產力（Productivity of Capital）。</li></ul><ul class="notes-list"><li class="sub">高折現率 → 鼓勵投入較多資源於短期、高效益計畫；對未來世代差別待遇較大。</li><li class="sub">低折現率 → 傾向選擇長期效益較大的計畫。</li><li class="sub">建議：若效益延續百年以上，應採用低於1%折現率；效益發生於短期則應大於1%。</li></ul><div class="section-title">四、計畫選擇準則</div><div class="table-wrap"><table><thead><tr><th>指標</th><th>說明</th><th>接受條件</th></tr></thead><tbody><tr><td>淨效益現值（NPV）</td><td>未來所有效益現值 − 所有成本現值</td><td>NPV > 0</td></tr><tr><td>益本比（B/C Ratio）</td><td>效益現值 / 成本現值</td><td>B/C > 1</td></tr><tr><td>內部報酬率（IRR）</td><td>使 NPV = 0 的折現率 r*</td><td>IRR > 市場利率</td></tr></tbody></table></div><div class="formula-box">NPV = Σ [(B<sub>t</sub> − C<sub>t</sub>) / (1 + r)<sup>t</sup>]</div><div class="section-title">五、成本有效性分析 vs. 成本效益分析</div><div class="table-wrap"><table><thead><tr><th>面向</th><th>成本有效性分析</th><th>成本效益分析</th></tr></thead><tbody><tr><td>效益評估</td><td>由決策者判斷</td><td>由分析者完成</td></tr><tr><td>分析重點</td><td>技術效率（最低成本達標）</td><td>經濟效率（效益與成本均衡）</td></tr><tr><td>適用時機</td><td>不知道目標的貨幣價值</td><td>需比較不同方案的整體效益</td></tr></tbody></table></div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-05">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.5</div>
+    <div class="chapter-title">第五章：汙染物之排放、擴散、反應與影響</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、環境保護效益估計流程（三階段）</div><div class="callout callout-green">階段一：減少汙染排放 → <strong>排放量轉換函數（ETF）</strong> → 降低汙染濃度<br>階段二：汙染濃度 → <strong>劑量反應函數（Dose-Response Function）</strong> → 對人類之效果<br>階段三：對人類效果 → <strong>效益函數（Benefit Function）</strong> → 以貨幣單位衡量效益</div><p class="para">需要三種跨學科知識的整合：自然科學知識、介面知識（生物醫學、農學等）、價值的經濟意義。</p><div class="section-title">二、汙染暴露量之估計</div><div class="table-wrap"><table><thead><tr><th>汙染類型</th><th>污染源分類</th></tr></thead><tbody><tr><td>空氣汙染</td><td>固定污染源（工廠、煙囪）；移動污染源（汽機車）</td></tr><tr><td>水汙染</td><td>點源（工業廢水、汙水處理廠）；非點源（農地逕流、建築工地）</td></tr></tbody></table></div><div class="section-title">三、重要擴散模式</div><ul class="notes-list"><li>Streeter-Phelps 模式：模擬溶氧（DO）與生化需氧量（BOD）在河川中的變化（氧垂曲線）。</li><li>高斯擴散模式（Gaussian Plume-Dispersion Equation）：預測特定地點在特定排放與大氣條件下的汙染濃度。</li><li>排放量轉換函數（ETF）：將某地排放量資訊轉變為對另一地環境品質的影響。</li></ul><div class="section-title">四、劑量反應函數（Dose-Response Function）</div><div class="table-wrap"><table><thead><tr><th>估計方法</th><th>說明</th><th>優缺點</th></tr></thead><tbody><tr><td>實驗室法</td><td>以動物實驗推估</td><td>無法直接對人體實驗，動物與人體差異大</td></tr><tr><td>流行病學法（Epidemiology）</td><td>從現實生活取樣</td><td>可考慮人對汙染物的趨避調整行為</td></tr><tr><td>健康生產函數法</td><td>將健康視為須支付成本的「財貨」</td><td>較能反映複雜的消費者決策行為</td></tr></tbody></table></div><ul class="notes-list"><li>門檻效果（Threshold）：汙染濃度低於某門檻時，對人體無顯著影響。</li></ul><div class="section-title">五、簡單的汙染防治成本效益分析模型</div><ul class="notes-list"><li>邊際排放減量成本（MERC）：降低污染排放的邊際成本。</li><li>邊際防治效益（MBC）：不同環境品質下的邊際效益。</li><li>最適防治量：MERC = MBC 之處。</li></ul><div class="callout callout-blue">多排放源：MERC <strong>水平加總</strong>；多受益者：MBC <strong>垂直加總</strong></div>
+
+<div class="section-title">📷 原始講義圖表（共 2/2 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/第五章_汙染物排放擴散反應影響_s12_img06.png" alt="投影片 12　圖5-6　基本的成本效益分析" loading="lazy"><div class="img-caption">投影片 12　圖5-6　基本的成本效益分析</div></div><div class="img-card"><img src="images/第五章_汙染物排放擴散反應影響_s14_img07.png" alt="投影片 14　圖5-8　
+A點以兩個排放者時有效率的環境品質" loading="lazy"><div class="img-caption">投影片 14　圖5-8　
+A點以兩個排放者時有效率的環境品質</div></div></div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-06">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.6</div>
+    <div class="chapter-title">第六章：市場價值評估法</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、前言</div><p class="para">當環境品質改善或惡化，影響到市場產品的生產量或消費量，可以直接引用市場財貨資訊（供給、需求、價格、數量）來評估福利變動。</p><div class="section-title">二、物質關連函數或生產函數</div><div class="formula-box">y = y（X, EQ）<br>y：市場財貨數量或品質；EQ：環境品質；X：影響 y 的其他因素向量</div><div class="table-wrap"><table><thead><tr><th>函數類型</th><th>適用對象</th></tr></thead><tbody><tr><td>物質損害函數</td><td>不具生命的市場財貨（如材料損壞）</td></tr><tr><td>劑量反應函數</td><td>具有生命的市場財貨（如農作物、人體健康）</td></tr><tr><td>生產函數</td><td>描述投入因素與產出量的關係，將環境品質視為生產投入之一</td></tr></tbody></table></div><div class="section-title">三、快速簡略法（Quick and Dirty）</div><ul class="notes-list"><li>適用情況：缺乏市場需求或供給資訊；經濟個體行為未因環境品質變動而改變；時間緊迫。</li></ul><div class="formula-box">效益/成本 = 財貨變動量 × 單位市場淨價格</div><div class="section-title">四、市場價值之簡易方法</div><ul class="notes-list"><li>產值變化、所得變化</li><li>替換成本（Replacement Cost）：以替換受損資產的成本估計損害</li><li>預防性支出（Preventive Expenditure）</li><li>重置成本（Restoration Cost）</li></ul><div class="section-title">五、市場價值法總評</div><div class="table-wrap"><table><thead><tr><th>面向</th><th>說明</th></tr></thead><tbody><tr><td>優點</td><td>簡單直接，有可觀察的市場資料</td></tr><tr><td>缺點</td><td>常有低估之虞（不含消費者剩餘的全部）；若市場價格存在扭曲（補貼、稅、外部性），需調整</td></tr></tbody></table></div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-07">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.7</div>
+    <div class="chapter-title">第七章：替代市場價值評估法</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="callout callout-blue"><strong>核心概念：</strong>觀察消費者在市場內消費與非市場財貨相關之市場財貨的行為，間接推估非市場財貨（如環境資源）的價值。<br><strong>共同假設：</strong>弱互補性（Weak Complementarity，WC）— 消費者若不消費與環境財有關的私有財貨，則其對該環境財的邊際效用等於零。</div><div class="section-title">一、旅行成本法（Travel Cost Method，TCM）</div><p class="para">理論基礎：以旅行成本替代財貨價格，從不同地區旅客因距離不同而支付不同旅行成本，建立旅遊需求函數。</p><div class="formula-box">旅遊總成本（Pr）= 旅遊金錢成本（f）+ 旅行時間成本 + 停留時間成本</div><ol class="notes-ol"><li>蒐集個別民眾至旅遊地點的旅遊次數、旅行成本、社經變數。</li><li>以旅遊次數為應變數、旅行成本與社經變數為自變數進行迴歸分析。</li><li>由旅遊需求曲線計算消費者剩餘即為遊憩效益。</li></ol><ul class="notes-list"><li>重要課題：應變數選擇（VPA vs. V/POP）、多重目的旅遊處理、時間價值計算、樣本選擇偏誤。</li><li>限制：TCM 只能推估使用價值，無法評估非使用價值。</li></ul><div class="section-title">二、特徵資產價值法（Hedonic Property Values Method，HPVM）</div><p class="para">基本概念：環境品質是房屋特徵之一，透過觀察房價的環境溢價，間接推估環境財貨的福利價值。</p><div class="formula-box">Ph<sub>i</sub> = f(S<sub>i</sub>, N<sub>i</sub>, Q<sub>i</sub>)<br>S：結構特徵（房屋大小、格局）；N：鄰近地區特徵；Q：環境品質特徵（空氣品質、噪音）</div><ol class="notes-ol"><li>估計特徵價格函數（Hedonic Price Function）</li><li>計算消費者對特定環境品質的邊際隱含價格（MIP）── 特徵價格函數對環境品質變數的偏微分</li><li>估計對環境品質特徵的需求函數</li></ol><div class="section-title">三、特徵工資法（Hedonic Wage Method，HWM）</div><p class="para">基本概念：透過工資風險貼水（Risk Premium）反映工人對工作安全的願付價值，常用於評估因環境因素造成的死亡風險改變之價值（統計生命的價值，VSL）。</p><div class="formula-box">P<sub>w</sub> = P<sub>w</sub>(π, Q)　（π = 工作致死機率）</div><div class="section-title">四、趨避行為法（Averting Behavior Method，ABM）</div><p class="para">環境品質惡化時，民眾增加「避免支出（Averting Expenditure，AE）」來預防負面影響；若 AE 與環境品質間具完全替代關係，可利用 AE 變化推估福利變動。</p><div class="section-title">五、本章小結</div><div class="callout callout-orange">替代市場評估法均隱含弱互補假設，故<strong>無法推估非使用價值</strong>。<br>選擇方法時須考量研究目的、理論基礎、資料需求、經費限制。</div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-08">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.8</div>
+    <div class="chapter-title">第八章：假設市場價值評估法（CVM）</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、CVM 發展演進</div><ul class="notes-list"><li>Ciriacy-Wantrup（1952）首提透過問卷直接詢問消費者對非市場財貨的願付價值。</li><li>Davis（1963）最早將 CVM 應用於衡量環境財效益。</li><li>1970年代中期開始廣被應用。</li></ul><div class="section-title">二、CVM 的優點</div><ul class="notes-list"><li>使用時較不受現有資料限制。</li><li>可同時估算使用價值與非使用價值（最大優點）。</li><li>可進行現場與非現場調查。</li><li>調查方式靈活（電話、郵寄、親自面訪）。</li></ul><div class="section-title">三、應用 CVM 的步驟</div><ol class="notes-ol"><li>建立假設性市場（Hypothetical/Contingent Market）：描述交易財貨的數量、品質變化、支付方式等。</li><li>詢問願付價值（WTP）或願意接受補償（WTA）</li><li>進行試訪（Pilot Test）與焦點團體（Focus Group）</li><li>選擇詢價方式</li><li>估計平均 WTP/WTA 與出價函數（Bidding Function）</li><li>加總資料求取社會總 WTP/WTA</li></ol><div class="section-title">四、詢價方式</div><div class="table-wrap"><table><thead><tr><th>方式</th><th>說明</th></tr></thead><tbody><tr><td>開放式詢價法</td><td>直接請受訪者填寫 WTP/WTA，方便但難以定價</td></tr><tr><td>逐步競價法（Bidding Game）</td><td>從起始金額逐步調高/低，至受訪者停止變動為止</td></tr><tr><td>支付卡法（Payment Cards）</td><td>提供一系列金額供受訪者選擇</td></tr><tr><td>封閉式（投票式）詢價法</td><td>僅詢問是否願意支付某特定金額（Yes/No），最接近實際購買行為，近年應用最廣</td></tr></tbody></table></div><div class="section-title">五、CVM 常見偏誤</div><div class="table-wrap"><table><thead><tr><th>偏誤類型</th><th>說明</th><th>解決方法</th></tr></thead><tbody><tr><td>策略性偏誤</td><td>受訪者搭便車，刻意高報或低報</td><td>排除極端值、強調他人支出確定</td></tr><tr><td>假設性偏誤</td><td>假設情境與現實差異導致回答不精確</td><td>讓假設市場更貼近現實；NOAA建議以50%修正估計值</td></tr><tr><td>起始點偏誤（拋錨效果）</td><td>起始金額影響受訪者最終出價</td><td>使用封閉式詢價</td></tr><tr><td>預算限制偏誤</td><td>WTP超過對特定環境財的真實願付金額</td><td>問卷提醒預算限制</td></tr><tr><td>訊息偏誤</td><td>受訪者依先入觀念作答</td><td>提供充分客觀訊息</td></tr><tr><td>支付工具偏誤</td><td>支付工具選擇影響出價</td><td>選用熟悉且符合實際的支付工具</td></tr><tr><td>訪員偏誤</td><td>訪員解說影響受訪者回答</td><td>訓練訪員，使用說明卡</td></tr><tr><td>埋藏偏誤（Embedding Bias）</td><td>WTP受問卷中財貨順序影響</td><td>注意問卷設計順序</td></tr></tbody></table></div><div class="section-title">六、NOAA 原則（Arrow et al., 1993）</div><div class="callout callout-orange">· 提供受訪者必要的資訊，事先測試各類民眾理解程度。<br>· 提醒受訪者環境財之替代財資訊。<br>· 採用二分選擇（Yes/No）詢價方式。<br>· 樣本回答率至少達 <strong>70%</strong>。<br>· 採用親自面訪調查方式。<br>· 詢問最大 WTP 而非最小 WTA。<br>· 因假設性問題可能高估真實 WTP，應<strong>乘以 0.5</strong> 修正。</div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-08s">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.8+</div>
+    <div class="chapter-title">第八章補充：森林遊憩效益評估</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、無形價值評估方式分類</div><div class="table-wrap"><table><thead><tr><th>方法類別</th><th>直接法</th><th>間接法</th></tr></thead><tbody><tr><td>顯示性偏好法（Revealed Preferences，RP）</td><td>市場價格法、模擬市場</td><td>旅行成本法（TCM）、特徵資產價值法、趨避支出法</td></tr><tr><td>陳述性偏好法（Stated Preferences，SP）</td><td>條件評估法（CVM）</td><td>條件排序法</td></tr></tbody></table></div><div class="section-title">二、供給面評估方法</div><ul class="notes-list"><li>實際成本法：直接投入成本總和</li><li>機會成本法：放棄其他用途的最大價值（如將國有林地轉為遊樂用途所放棄的木材收益）</li><li>影子價格法：無市場價格的財貨估算價值</li></ul><div class="section-title">三、需求面評估方法</div><div class="table-wrap"><table><thead><tr><th>方法</th><th>判斷準則</th></tr></thead><tbody><tr><td>淨現值法（NPV）</td><td>NPV > 0 則該計畫可接受</td></tr><tr><td>內在報酬率法（IRR）</td><td>r > 市場利率則計畫有利</td></tr><tr><td>益本比法（B/C Ratio）</td><td>B/C > 1 計畫有利，常用於公共事業投資決策</td></tr></tbody></table></div><div class="section-title">四、旅行成本法（TCM）計算步驟</div><ol class="notes-ol"><li>以旅行成本（X）與遊客人數（Y）建立需求曲線。</li><li>選擇函數型式（如 Y = a + bX + cX²）。</li><li>以最小平方法（OLS）或最大概似法（MLE）估計參數。</li><li>計算消費者剩餘、最大收入對應的門票價格等。</li></ol><div class="section-title">五、重力模式（Gravity Model）</div><div class="formula-box">T<sub>ij</sub> = K · Z<sub>j</sub> · f(C<sub>ij</sub>)<br>預測由住宅區 i 至遊憩區 j 的旅遊次數，考量各遊憩區間的相對品質與旅遊成本。</div>
+
+<div class="section-title">📷 原始講義圖表（共 12/12 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s14_img04.jpg" alt="投影片 14　TCM計算步驟
+繪製旅遊成本(包括往返車資和門票價格)為X，由不同距離來訪的實際遊客人數為Y (百萬" loading="lazy"><div class="img-caption">投影片 14　TCM計算步驟
+繪製旅遊成本(包括往返車資和門票價格)為X，由不同距離來訪的實際遊客人數為Y (百萬</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s15_img05.png" alt="投影片 15　15 | 8.2 森林遊憩效益評估方式-需求面5.旅行成本法" loading="lazy"><div class="img-caption">投影片 15　15 | 8.2 森林遊憩效益評估方式-需求面5.旅行成本法</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s16_img06.png" alt="投影片 16　16" loading="lazy"><div class="img-caption">投影片 16　16</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s17_img07.png" alt="投影片 17　17" loading="lazy"><div class="img-caption">投影片 17　17</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s17_img08.png" alt="投影片 17　17" loading="lazy"><div class="img-caption">投影片 17　17</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s21_img09.png" alt="投影片 21　21" loading="lazy"><div class="img-caption">投影片 21　21</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s21_img10.png" alt="投影片 21　21" loading="lazy"><div class="img-caption">投影片 21　21</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s21_img11.png" alt="投影片 21　21" loading="lazy"><div class="img-caption">投影片 21　21</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s21_img12.png" alt="投影片 21　21" loading="lazy"><div class="img-caption">投影片 21　21</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s26_img13.jpg" alt="投影片 26　26" loading="lazy"><div class="img-caption">投影片 26　26</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s27_img14.png" alt="投影片 27　27" loading="lazy"><div class="img-caption">投影片 27　27</div></div><div class="img-card"><img src="images/第八章補充_森林遊樂效益評估_s28_img15.png" alt="投影片 28　2 森林遊憩效益評估方式-需求面願付價值法/條件評估法 | 28" loading="lazy"><div class="img-caption">投影片 28　2 森林遊憩效益評估方式-需求面願付價值法/條件評估法 | 28</div></div></div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-09">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.9</div>
+    <div class="chapter-title">第九章：效益移轉法（Benefit Transfer）</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、定義</div><ul class="notes-list"><li>效益移轉法：引用他處已證實的數據，呈現研究主題特定環境品質或功能的經濟效益與成本。</li><li>研究點（Study Site）：引用出處的原始評估地區。</li><li>政策點（Policy Site）：移用效益評估結果的目標地區。</li></ul><div class="section-title">二、適用情況</div><ul class="notes-list"><li>時間、經費、人事不足，無法進行完整調查。</li><li>研究點與政策點極為類似（地理、人口、環境品質、政策性質）。</li></ul><div class="section-title">三、效益移轉的步驟</div><ol class="notes-ol"><li>篩選文獻：環境品質變動型態與量應與政策點類似；確認文獻統計數據、理論基礎、實證方法的嚴謹性。</li><li>決定移轉方式：單位平均值移轉；調整後的單位平均值移轉（考量所得水準差異等）；移轉供給或需求函數（最嚴謹）。</li><li>計算政策點之效益或成本值</li><li>計算總現值</li></ol><div class="section-title">四、效益移轉之困難</div><ol class="notes-ol"><li>依賴高品質文獻，偏遠地區或發展中國家可取得文獻有限。</li><li>全新政策措施可能無適用的研究點。</li><li>研究點與政策點之差異（所得水準、環境品質、文化獨特性）可能造成移轉偏誤。</li><li>研究者主觀判斷增加困難度（如政策措施影響範圍的界定、人口母體選取範圍）。</li></ol>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-10">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.10</div>
+    <div class="chapter-title">第十章：空氣汙染防治成本之估計</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、成本項目和型態</div><p class="para">廠商可能採用的三種防治方法：</p><ol class="notes-ol"><li>事前處理：降低投入原料中的汙染成份（如降低燃料含硫量）</li><li>改變生產製程：以較少污染方式生產</li><li>加裝防治設備（End-of-Pipe）：如靜電集塵器（粒狀物）、脫硝設備 SCR（氮氧化物）</li></ol><div class="formula-box">防治總成本 = 資本成本 + 維護操作成本 − 防治回收成本<br>資本成本 = 直接防治資本成本 + 間接防治資本成本</div><div class="section-title">二、主要防治設備效率</div><div class="table-wrap"><table><thead><tr><th>設備</th><th>粒狀物</th><th>SOx</th><th>NOx</th><th>CO</th><th>VOC</th></tr></thead><tbody><tr><td>脈動噴射式袋屋</td><td>97%</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>靜電集塵器（ESP）</td><td>99%</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>濕式排煙脫硫</td><td>55%</td><td>80%</td><td>0</td><td>0</td><td>0</td></tr><tr><td>選擇性觸媒還原（SCR）</td><td>0</td><td>0</td><td>90%</td><td>0</td><td>0</td></tr><tr><td>觸媒焚化爐</td><td>0</td><td>0</td><td>0</td><td>98%</td><td>98%</td></tr><tr><td>固定床吸附式設備</td><td>0</td><td>0</td><td>0</td><td>0</td><td>90%</td></tr></tbody></table></div><div class="section-title">三、衡量汙染防治成本的方法</div><ol class="notes-ol"><li>工程模擬法（Engineering Simulation）：利用工程公式（如 Cobb-Douglas 成本函數）估計設備成本。</li><li>迴歸與計量經濟分析（Econometric Method）：估計成本函數 C = f(PX, Q)；常用函數形式：Cobb-Douglas、CES、Translog。</li><li>線性規劃（Linear Programming）</li><li>總體計量方法（Macro-Econometric Models）：如 Jorgenson-Wilcoxen 模型</li></ol><div class="callout callout-orange">沒有一個方法可以一體適用，須視所欲回答的政策性問題及可收集的資料而定。</div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-11">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.11</div>
+    <div class="chapter-title">第十一章：空氣汙染防治對健康之影響與效益</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、空氣汙染對健康的五種影響途徑</div><ol class="notes-ol"><li>因疾病的醫療支出（含就醫時間的機會成本）</li><li>疾病期間無法工作所損失的工資</li><li>趨避、預防行為的支出</li><li>罹病的痛苦與減少休閒活動的負效用</li><li>生命期望值的改變與提早死亡的風險</li></ol><div class="section-title">二、健康變化的定義</div><ul class="notes-list"><li>死亡（Mortality）：死亡機率的改變（條件機率改變量）。</li><li>罹病（Morbidity）：因疾病或傷害導致身體或心理偏離正常狀態。</li></ul><div class="section-title">三、降低死亡風險之效益衡量</div><div class="callout callout-green"><strong>統計生命的價值（Value of a Statistical Life，VSL）</strong></div><div class="formula-box">VSL = WTP<sub>i</sub>(ΔD<sub>i</sub>) / ΔD<sub>i</sub><br>ΔD：死亡風險的邊際改變量；WTP：對降低此死亡風險的邊際願付價值</div><div class="table-wrap"><table><thead><tr><th>評估方法</th><th>說明</th><th>缺點</th></tr></thead><tbody><tr><td>人力資本法</td><td>個人價值 = 產出價值（工資）</td><td>與福利經濟學理論相悖</td></tr><tr><td>特徵工資法</td><td>利用工資風險貼水推論 VSL</td><td>需認知風險與客觀風險一致</td></tr><tr><td>趨避行為法</td><td>觀察安全設備消費的邊際成本</td><td>容易低估（有/無決策、聯合產出問題）</td></tr><tr><td>特徵資產價值法</td><td>高低污染區房價差異</td><td>需個人充分認知風險</td></tr><tr><td>CVM</td><td>直接詢問對風險降低的 WTP</td><td>假設性問題的局限</td></tr></tbody></table></div><div class="section-title">四、罹病降低之效益衡量</div><div class="formula-box">S = S[E(A, P), M]<br>S：健康狀況；E：汙染暴露量；A：趨避行為；P：空氣品質；M：減輕行為</div><div class="table-wrap"><table><thead><tr><th>評估方法</th><th>涵蓋範圍</th><th>備注</th></tr></thead><tbody><tr><td>疾病成本法（COI）</td><td>薪資損失 + 醫療支出</td><td>低估，未含趨避支出與效用損失</td></tr><tr><td>趨避行為法</td><td>疾病成本 + 趨避支出</td><td>罹病的私人成本</td></tr><tr><td>CVM</td><td>趨避支出 + 時間損失 + 罹病負效用</td><td>最完整，包含不可觀測部分</td></tr></tbody></table></div><div class="section-title">五、台灣實證研究結果</div><ul class="notes-list"><li>蕭代基等（1993）在台北、台北縣永和、高雄、花蓮等五地進行調查。</li><li>個別管制 PM₁₀、SO₂、O₃ 各50%，可降低台北罹病率0.24%、0.27%、0.086%。</li><li>同時降低三種污染物效果大於個別加總（存在交互作用）。</li><li>WTP 估計：一天兩症狀疾病的願付價值約 17-70 美元。</li><li>台北地區受訪者 WTP 最高，台中次之，高雄最低。</li></ul>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-12">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.12</div>
+    <div class="chapter-title">第十二章：空氣汙染防治對生態系之影響與效益</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、生態系分類</div><div class="table-wrap"><table><thead><tr><th>類型</th><th>例子</th></tr></thead><tbody><tr><td>陸域生態系</td><td>森林、草原、沙漠</td></tr><tr><td>水域生態系</td><td>沼澤、湖泊、溪流、海洋</td></tr></tbody></table></div><div class="section-title">二、空氣汙染對生態資源的影響</div><ul class="notes-list"><li>直接影響：空氣汙染成份直接造成生物死亡、降低生長及生存能力、或造成滅絕。</li><li>間接影響：透過不同生態運轉功能途徑，造成生物死亡或生命力減弱。</li></ul><div class="callout callout-green">以森林為例：空氣污染 → 影響樹木 → 影響土壤、甲蟲、病原菌、土壤微生節足動物 → 影響錐型昆蟲、小型哺乳類，形成複雜的生態交互影響。</div><div class="section-title">三、生態系功能與服務</div><div class="table-wrap"><table><thead><tr><th>提供物質及服務</th><th>環境廢棄物調節</th><th>生命存續支持</th></tr></thead><tbody><tr><td>初級材料、燃料</td><td>吸收廢棄物、分解養分</td><td>基因庫</td></tr><tr><td>商業產品、基因庫</td><td>保護水源、土質</td><td>氣候調節、碳固化</td></tr><tr><td>食物、觀光遊憩</td><td>涵養水量、防洪</td><td>野生物種棲息地</td></tr><tr><td>科學研究</td><td>土壤生成</td><td>美質、文化及精神支持</td></tr></tbody></table></div><div class="section-title">四、生態資源之經濟價值分類與評估方法</div><div class="table-wrap"><table><thead><tr><th>價值類型</th><th>定義</th><th>評估方法</th></tr></thead><tbody><tr><td>直接使用價值</td><td>可直接消費的產出效益（食物、遊憩、景觀）</td><td>TCM、特徵資產法、CVM、市場價值法</td></tr><tr><td>間接使用價值</td><td>功能性效益（防洪、養分循環）</td><td>特徵資產法、CVM、市場價值法</td></tr><tr><td>選擇價值</td><td>未來直接與間接使用的選擇權</td><td>CVM</td></tr><tr><td>遺贈價值</td><td>將環境資源使用效益傳承給後代</td><td>CVM</td></tr><tr><td>存在價值</td><td>生態持續存在的知識價值</td><td>CVM</td></tr></tbody></table></div>
+  </div>
+</section>
+<section class="chapter type-main" id="ch-13">
+  <div class="chapter-header">
+    <div class="chapter-num">Ch.13</div>
+    <div class="chapter-title">第十三章：空氣汙染防治對農業之影響與效益</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、空氣汙染對農業的影響</div><div class="table-wrap"><table><thead><tr><th>汙染物</th><th>主要來源</th><th>受影響農作物</th></tr></thead><tbody><tr><td>二氧化硫（SO₂）</td><td>工廠、熔煉廠</td><td>大麥、苜蓿、三葉草</td></tr><tr><td>臭氧（O₃）</td><td>二次汙染物、汽機車</td><td>菸葉、豆類</td></tr><tr><td>氮氧化物（NOx）</td><td>工廠、汽機車</td><td>豆類、豌豆</td></tr><tr><td>氟化物（HF）</td><td>製磚廠、熔煉廠、燃煤</td><td>大麥、玉米</td></tr><tr><td>氨（NH₃）</td><td>肥料廠、農業</td><td>豆類、向日葵</td></tr></tbody></table></div><div class="section-title">二、劑量反應函數</div><ul class="notes-list"><li>線性型式</li><li>Weibull 函數型式：y = f(x) + ε（y = 產量觀察值，x = 污染物濃度）</li></ul><ul class="notes-list"><li class="sub">葉片損害模型（Foliar Injury Models）</li><li class="sub">次級反應資料（橫斷面迴歸分析）</li><li class="sub">實驗資料（Open-Top Chamber 等實驗設計）</li></ul><div class="section-title">三、農作物損失之經濟價值評估</div><ol class="notes-ol"><li>傳統方法：市場價值法，以單位價格 × 產量變動量估算損失。</li><li>數學規劃法：線性規劃（LP）、二次規劃（QP），推估空氣品質變動對區域或國家農作物市場供需福利影響。</li><li>計量經濟方法：推估對偶理論（Duality）函數：生產函數、成本函數、利潤函數；將空氣品質視為函數中之一項變數。</li></ol><div class="callout callout-orange">注意：農民會因空氣污染增加而<strong>調整生產決策</strong>（如改種受汙染影響較小的作物），評估模型應反映此行為調整。</div>
+  </div>
+</section>
+<section class="chapter type-supp" id="ch-s1">
+  <div class="chapter-header">
+    <div class="chapter-num">S.1</div>
+    <div class="chapter-title">補充教材一：國內外氣候治理概況與產業碳風險</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、四種直接碳定價工具</div><div class="table-wrap"><table><thead><tr><th>工具類型</th><th>性質</th><th>碳權名稱</th></tr></thead><tbody><tr><td>1. 碳環境稅費</td><td>強制性</td><td>—</td></tr><tr><td>2. 排放交易機制（ETS）</td><td>強制性</td><td>排放許可/排放權</td></tr><tr><td>3. 碳信用抵換機制</td><td>自願性</td><td>碳信用/減量額度</td></tr><tr><td>4. 企業內部碳定價（ICP）</td><td>私部門管理工具</td><td>—</td></tr></tbody></table></div><div class="section-title">二、氣候治理科學基礎</div><ul class="notes-list"><li>溫室氣體（GHG）：CO₂、CH₄、N₂O、SF₆、HFCs、CFCs、PFCs、NF₃</li><li>TCRE（瞬態累積排放量之氣候回應）：全球平均氣溫上升 ≈ 累積CO₂排放量（近似正比，與排放路徑無關）。</li><li>碳預算（Carbon Budget）：在特定升溫控制目標下，全球還能累積排放的CO₂總量上限。</li></ul><div class="table-wrap"><table><thead><tr><th>升溫目標</th><th>50%機率達成（自2020年起）</th></tr></thead><tbody><tr><td>1.5℃</td><td>500 GtCO₂（約10年全球排放量）</td></tr><tr><td>2.0℃</td><td>1350 GtCO₂</td></tr></tbody></table></div><div class="section-title">三、國際氣候治理里程碑</div><div class="table-wrap"><table><thead><tr><th>年份</th><th>事件</th><th>重點</th></tr></thead><tbody><tr><td>1992年</td><td>《聯合國氣候變化綱要公約（UNFCCC）》</td><td>建立氣候治理基本框架</td></tr><tr><td>1997年</td><td>《京都議定書》</td><td>附件一國家承擔減量義務</td></tr><tr><td>2015年</td><td>《巴黎協定》</td><td>全球共識升溫不超過2℃、力求1.5℃；各國提交NDC</td></tr></tbody></table></div><div class="callout callout-red">截至2026年：全球升溫已較前工業化時期上升約 <strong>1.29℃</strong>。升溫突破1.5℃的碳預算將在2030年前耗盡。</div><div class="section-title">四、台灣氣候治理現況</div><ul class="notes-list"><li>台灣目前碳定價工具以「抵換機制」為主。</li><li>《氣候變遷因應法》有授權排放交易，但尚未規劃執行 ETS。</li><li>碳費制度已建立，正逐步推動。</li></ul>
+
+<div class="section-title">📷 原始講義圖表（共 16/51 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s03_img01.png" alt="投影片 3　淨零轉型議題脈絡：氣候治理架構
+國際層次：聯合國氣候變化綱要公約
+國家層次：臺灣氣候治理現況與發展" loading="lazy"><div class="img-caption">投影片 3　淨零轉型議題脈絡：氣候治理架構
+國際層次：聯合國氣候變化綱要公約
+國家層次：臺灣氣候治理現況與發展</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s05_img02.png" alt="投影片 5　溫室氣體與溫室氣體效應 | 圖片來源：https://storage.googleapis.com/" loading="lazy"><div class="img-caption">投影片 5　溫室氣體與溫室氣體效應 | 圖片來源：https://storage.googleapis.com/</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s06_img03.png" alt="投影片 6　科學基礎：瞬態累積排放量之氣候回應 (TCRE) | 6 | TCRE定義為每1000 GtC（Pg" loading="lazy"><div class="img-caption">投影片 6　科學基礎：瞬態累積排放量之氣候回應 (TCRE) | 6 | TCRE定義為每1000 GtC（Pg</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s09_img06.png" alt="投影片 9　02. 目標—為達升溫控制願景的必要條件：淨零排放 | 圖片來源：UNEP (2021), The" loading="lazy"><div class="img-caption">投影片 9　02. 目標—為達升溫控制願景的必要條件：淨零排放 | 圖片來源：UNEP (2021), The</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s14_img08.png" alt="投影片 14　《聯合國氣候變化框架公約》(UNFCCC) 
+於1992年5月9日起草，同年6月4日至14日在里約熱" loading="lazy"><div class="img-caption">投影片 14　《聯合國氣候變化框架公約》(UNFCCC) 
+於1992年5月9日起草，同年6月4日至14日在里約熱</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s18_img09.png" alt="投影片 18" loading="lazy"><div class="img-caption">投影片 18</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s19_img10.png" alt="投影片 19　國際遵約角度的關鍵里程：京都議定書到巴黎協定 | 由上而下 | 由下而上" loading="lazy"><div class="img-caption">投影片 19　國際遵約角度的關鍵里程：京都議定書到巴黎協定 | 由上而下 | 由下而上</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s19_img11.png" alt="投影片 19　國際遵約角度的關鍵里程：京都議定書到巴黎協定 | 由上而下 | 由下而上" loading="lazy"><div class="img-caption">投影片 19　國際遵約角度的關鍵里程：京都議定書到巴黎協定 | 由上而下 | 由下而上</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s20_img12.png" alt="投影片 20　20 | 聯合國排放缺口報告：2020未達標、2030缺口高達40%以上 | UNEP, 2024," loading="lazy"><div class="img-caption">投影片 20　20 | 聯合國排放缺口報告：2020未達標、2030缺口高達40%以上 | UNEP, 2024,</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s21_img13.png" alt="投影片 21　巴黎協定後的重點：如何落實？ | COP23 | 馬拉咯什行動宣言 
+Marrakech Actio" loading="lazy"><div class="img-caption">投影片 21　巴黎協定後的重點：如何落實？ | COP23 | 馬拉咯什行動宣言 
+Marrakech Actio</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s21_img16.tiff" alt="投影片 21　巴黎協定後的重點：如何落實？ | COP23 | 馬拉咯什行動宣言 
+Marrakech Actio" loading="lazy"><div class="img-caption">投影片 21　巴黎協定後的重點：如何落實？ | COP23 | 馬拉咯什行動宣言 
+Marrakech Actio</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s21_img17.png" alt="投影片 21　巴黎協定後的重點：如何落實？ | COP23 | 馬拉咯什行動宣言 
+Marrakech Actio" loading="lazy"><div class="img-caption">投影片 21　巴黎協定後的重點：如何落實？ | COP23 | 馬拉咯什行動宣言 
+Marrakech Actio</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s25_img21.png" alt="投影片 25　NCQG財務目標的幾個可能資金來源" loading="lazy"><div class="img-caption">投影片 25　NCQG財務目標的幾個可能資金來源</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s25_img22.png" alt="投影片 25　NCQG財務目標的幾個可能資金來源" loading="lazy"><div class="img-caption">投影片 25　NCQG財務目標的幾個可能資金來源</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s25_img23.png" alt="投影片 25　NCQG財務目標的幾個可能資金來源" loading="lazy"><div class="img-caption">投影片 25　NCQG財務目標的幾個可能資金來源</div></div><div class="img-card"><img src="images/補充一_國內外氣候治理概況與碳風險_s26_img24.png" alt="投影片 26　26 | https://www.moa.gov.tw/theme_data.php?theme=n" loading="lazy"><div class="img-caption">投影片 26　26 | https://www.moa.gov.tw/theme_data.php?theme=n</div></div></div>
+  </div>
+</section>
+<section class="chapter type-supp" id="ch-s2">
+  <div class="chapter-header">
+    <div class="chapter-num">S.2</div>
+    <div class="chapter-title">補充教材二：總量管制排放交易機制（ETS）</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、ETS 基本概念</div><div class="callout callout-blue"><strong>總量管制排放交易（Cap & Trade，ETS）</strong>：設定排放總量上限（Cap），將排放許可分配給受管制排放源，不同排放源間可進行交易（Trade），以最低成本達成減量目標。</div><div class="section-title">二、ETS 的特點</div><div class="table-wrap"><table><thead><tr><th>特點</th><th>說明</th></tr></thead><tbody><tr><td>減量成效確定性</td><td>排放總量由Cap提供確定性，符合碳預算目標</td></tr><tr><td>成本有效性</td><td>行業間/行業內可通過交易實現成本有效</td></tr><tr><td>管理複雜度</td><td>較碳稅複雜，需建立二級市場，對主管機構和廠商都有額外挑戰</td></tr><tr><td>碳價可預測性</td><td>碳價由市場決定，會隨經濟狀況波動</td></tr></tbody></table></div><div class="section-title">三、ETS 設計步驟</div><ol class="notes-ol"><li>決定管制對象（覆蓋範圍）：考量排放占比（抓大放小）、減量措施可行性、監管成本。</li><li>設定減量目標：由上而下（Top-down）或由下而上（Bottom-up）。</li><li>設定排放上限（Cap）：綜合考量排放趨勢與減量潛力。</li><li>排放配額分配方式：拍賣法（Auctioning）；歷史溯往法（Grandfathering）；基準法（Benchmarking）。</li><li>排放額度交易（Market Operation）</li><li>遵約與履約</li><li>彈性機制（包括跨期儲存使用、碳信用抵換）</li><li>市場連結</li></ol><div class="section-title">四、代表性案例：歐盟 EU ETS</div><ul class="notes-list"><li>2005年啟動，全球最大的強制性碳排放交易體系。</li><li>覆蓋歐盟約 40% 的溫室氣體排放量。</li><li>管制氣體：CO₂、N₂O、PFC。</li><li>2030年短期目標：較2005年排放量減少61%。</li></ul><div class="table-wrap"><table><thead><tr><th>階段</th><th>時間</th><th>重點</th></tr></thead><tbody><tr><td>第一階段</td><td>2005-2007</td><td>試驗階段</td></tr><tr><td>第二階段</td><td>2008-2012</td><td>與京都議定書第一承諾期對接</td></tr><tr><td>第三階段</td><td>2013-2020</td><td>統一排放上限、拍賣為主要分配方式</td></tr><tr><td>第四階段</td><td>2021-2030</td><td>收緊上限、CBAM、2027年引入ETS 2（住商、運輸）</td></tr></tbody></table></div><div class="callout callout-green">2023年平均碳價：EU ETS 約 <strong>61.3 USD/tCO₂e</strong>（全球最高之一）；中國國家ETS 約 12.57 USD/tCO₂e。</div>
+
+<div class="section-title">📷 原始講義圖表（共 16/36 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s06_img02.png" alt="投影片 6　減量成本曲線
+不同排放源之間曲線的互動 | 理解排放交易機制" loading="lazy"><div class="img-caption">投影片 6　減量成本曲線
+不同排放源之間曲線的互動 | 理解排放交易機制</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s07_img04.png" alt="投影片 7　7 | 減量成本曲線的概念與應用 | 不同的減量措施" loading="lazy"><div class="img-caption">投影片 7　7 | 減量成本曲線的概念與應用 | 不同的減量措施</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s08_img05.png" alt="投影片 8　8 | 應用示例：麥肯錫全球溫室氣體減量成本曲線 | 資料來源：McKinsey (2009)" loading="lazy"><div class="img-caption">投影片 8　8 | 應用示例：麥肯錫全球溫室氣體減量成本曲線 | 資料來源：McKinsey (2009)</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s09_img06.png" alt="投影片 9　9 | 台灣版的減量成本曲線 | 資料來源：國家科學委員會 (2012)" loading="lazy"><div class="img-caption">投影片 9　9 | 台灣版的減量成本曲線 | 資料來源：國家科學委員會 (2012)</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s12_img07.png" alt="投影片 12　12 | ETS的概念架構：不同排放源之間MACC的互動 | 圖片來源：World Bank (20" loading="lazy"><div class="img-caption">投影片 12　12 | ETS的概念架構：不同排放源之間MACC的互動 | 圖片來源：World Bank (20</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s12_img08.png" alt="投影片 12　12 | ETS的概念架構：不同排放源之間MACC的互動 | 圖片來源：World Bank (20" loading="lazy"><div class="img-caption">投影片 12　12 | ETS的概念架構：不同排放源之間MACC的互動 | 圖片來源：World Bank (20</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s13_img09.png" alt="投影片 13　13 | ETS的概念架構：不同排放源之間MACC的互動 | 圖片來源：World Bank (20" loading="lazy"><div class="img-caption">投影片 13　13 | ETS的概念架構：不同排放源之間MACC的互動 | 圖片來源：World Bank (20</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s13_img10.png" alt="投影片 13　13 | ETS的概念架構：不同排放源之間MACC的互動 | 圖片來源：World Bank (20" loading="lazy"><div class="img-caption">投影片 13　13 | ETS的概念架構：不同排放源之間MACC的互動 | 圖片來源：World Bank (20</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s16_img11.png" alt="投影片 16　16 | 國際總量管制排放交易機制推動現況 (2024) | 資料來源：World Bank Car" loading="lazy"><div class="img-caption">投影片 16　16 | 國際總量管制排放交易機制推動現況 (2024) | 資料來源：World Bank Car</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s17_img14.png" alt="投影片 17　17 | 資料來源：World Bank (2023) 《碳排放權交易實踐：設計與實施手𠕋 (第二版" loading="lazy"><div class="img-caption">投影片 17　17 | 資料來源：World Bank (2023) 《碳排放權交易實踐：設計與實施手𠕋 (第二版</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s19_img15.png" alt="投影片 19　19 | https://about.bnef.com/blog/global-carbon-mar" loading="lazy"><div class="img-caption">投影片 19　19 | https://about.bnef.com/blog/global-carbon-mar</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s19_img16.png" alt="投影片 19　19 | https://about.bnef.com/blog/global-carbon-mar" loading="lazy"><div class="img-caption">投影片 19　19 | https://about.bnef.com/blog/global-carbon-mar</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s20_img17.png" alt="投影片 20　20 | 從投資商品角度：碳權ETF | https://www.google.com/financ" loading="lazy"><div class="img-caption">投影片 20　20 | 從投資商品角度：碳權ETF | https://www.google.com/financ</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s22_img18.png" alt="投影片 22　22 | 資料來源：World Bank (2023) 《碳排放權交易實踐：設計與實施手𠕋 (第二版" loading="lazy"><div class="img-caption">投影片 22　22 | 資料來源：World Bank (2023) 《碳排放權交易實踐：設計與實施手𠕋 (第二版</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s22_img19.png" alt="投影片 22　22 | 資料來源：World Bank (2023) 《碳排放權交易實踐：設計與實施手𠕋 (第二版" loading="lazy"><div class="img-caption">投影片 22　22 | 資料來源：World Bank (2023) 《碳排放權交易實踐：設計與實施手𠕋 (第二版</div></div><div class="img-card"><img src="images/補充二_總量管制排放交易機制_s24_img20.png" alt="投影片 24　設計覆蓋範圍 (管制對象) | 行業別及氣體種類有差異
+考量的重點：
+排放占比 (抓大放小)
+減量措" loading="lazy"><div class="img-caption">投影片 24　設計覆蓋範圍 (管制對象) | 行業別及氣體種類有差異
+考量的重點：
+排放占比 (抓大放小)
+減量措</div></div></div>
+  </div>
+</section>
+<section class="chapter type-supp" id="ch-s4">
+  <div class="chapter-header">
+    <div class="chapter-num">S.4</div>
+    <div class="chapter-title">補充教材四：碳環境稅費（Carbon Tax / Levy / Fee）</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、基本概念：外部成本內部化</div><div class="callout callout-blue">外部性（Externalities）：行為主體採取行動時，部分代價不由自身承擔（外部成本）或不由自身享有（外部效益）。<br>碳稅邏輯：對生產造成的排放徵稅（= 外部成本），使生產者面對完整的社會成本，引導至社會最適產量。</div><div class="formula-box">社會成本（MSC）= 私人成本（MPC）+ 外部成本（MEC）<br>最適稅率 = 社會最適產量下的外部邊際成本</div><div class="section-title">二、ETS vs. 碳稅的比較</div><div class="table-wrap"><table><thead><tr><th>面向</th><th>排放交易（ETS）</th><th>碳稅/費</th></tr></thead><tbody><tr><td>確定性</td><td>排放量確定，碳價不確定</td><td>碳價確定，排放量不確定</td></tr><tr><td>成本有效性</td><td>跨廠商交易可實現效率</td><td>統一費率激勵低成本減量</td></tr><tr><td>管理複雜度</td><td>較高</td><td>較低</td></tr><tr><td>適用行業</td><td>大型排放源</td><td>可較廣泛覆蓋</td></tr></tbody></table></div><div class="section-title">三、國際碳稅費推動現況</div><ul class="notes-list"><li>全球實施碳稅費的國家：阿根廷、智利、哥倫比亞、新加坡、南非等。</li><li>台灣碳費制度正在推動中（初期費率設定為關鍵議題）。</li></ul><div class="section-title">四、案例說明</div><div class="table-wrap"><table><thead><tr><th>國家</th><th>制度</th><th>說明</th></tr></thead><tbody><tr><td>日本</td><td>化石燃料碳稅</td><td>全球首個對化石燃料徵收碳稅的國家之一，地方（東京）亦有碳交易機制</td></tr><tr><td>新加坡</td><td>Carbon Tax</td><td>2019年開徵，2024年費率逐步調升</td></tr><tr><td>台灣</td><td>碳費</td><td>依《氣候變遷因應法》開徵，適用年排放量達2.5萬噸CO₂e以上的工廠</td></tr></tbody></table></div>
+
+<div class="section-title">📷 原始講義圖表（共 16/23 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/補充四_碳環境稅費_s05_img01.png" alt="投影片 5　5 | 碳環境稅費 (tax, levy, fee) | 圖片來源：https://www.wall" loading="lazy"><div class="img-caption">投影片 5　5 | 碳環境稅費 (tax, levy, fee) | 圖片來源：https://www.wall</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s14_img05.png" alt="投影片 14　供給及供給曲線 | 14 | 供給 (supply) 
+
+事物價格 (price) 與願意生產量 (" loading="lazy"><div class="img-caption">投影片 14　供給及供給曲線 | 14 | 供給 (supply) 
+
+事物價格 (price) 與願意生產量 (</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s18_img07.png" alt="投影片 18　18 | 市場模型 | 圖片來源：《供需迷思 經濟學中常見的錯誤解析》(連結)" loading="lazy"><div class="img-caption">投影片 18　18 | 市場模型 | 圖片來源：《供需迷思 經濟學中常見的錯誤解析》(連結)</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s19_img08.png" alt="投影片 19　19 | 供給及需求的行為分析 | 圖片來源：《供需迷思 經濟學中常見的錯誤解析》(連結)" loading="lazy"><div class="img-caption">投影片 19　19 | 供給及需求的行為分析 | 圖片來源：《供需迷思 經濟學中常見的錯誤解析》(連結)</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s19_img09.png" alt="投影片 19　19 | 供給及需求的行為分析 | 圖片來源：《供需迷思 經濟學中常見的錯誤解析》(連結)" loading="lazy"><div class="img-caption">投影片 19　19 | 供給及需求的行為分析 | 圖片來源：《供需迷思 經濟學中常見的錯誤解析》(連結)</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s20_img10.png" alt="投影片 20　20 | 供給及需求的行為分析 | 圖片來源：《供需迷思 經濟學中常見的錯誤解析》(連結)" loading="lazy"><div class="img-caption">投影片 20　20 | 供給及需求的行為分析 | 圖片來源：《供需迷思 經濟學中常見的錯誤解析》(連結)</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s24_img13.png" alt="投影片 24　外部性的內涵 (externalities) | 24 | 行為主體 (個人, 組織, 部門, 產業" loading="lazy"><div class="img-caption">投影片 24　外部性的內涵 (externalities) | 24 | 行為主體 (個人, 組織, 部門, 產業</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s25_img14.png" alt="投影片 25　外部成本存在時透過市場所造成的影響 | 25 | 校正方式：建立一個稅=外部成本, 把外部成本內部化" loading="lazy"><div class="img-caption">投影片 25　外部成本存在時透過市場所造成的影響 | 25 | 校正方式：建立一個稅=外部成本, 把外部成本內部化</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s28_img17.png" alt="投影片 28　28 | 碳環境稅費國際推動現況 (2024) | 資料來源：World Bank Carbon P" loading="lazy"><div class="img-caption">投影片 28　28 | 碳環境稅費國際推動現況 (2024) | 資料來源：World Bank Carbon P</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s28_img18.png" alt="投影片 28　28 | 碳環境稅費國際推動現況 (2024) | 資料來源：World Bank Carbon P" loading="lazy"><div class="img-caption">投影片 28　28 | 碳環境稅費國際推動現況 (2024) | 資料來源：World Bank Carbon P</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s36_img19.png" alt="投影片 36　碳環境稅費實施原則（FASTER） | 用以評估制度之完整性、提高實際施行時之成功率 | 註：由 W" loading="lazy"><div class="img-caption">投影片 36　碳環境稅費實施原則（FASTER） | 用以評估制度之完整性、提高實際施行時之成功率 | 註：由 W</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s41_img20.png" alt="投影片 41　應用風險矩陣分析法進行「產業層次」衝擊分析
+應用IO, CGE等模型進行「總體經濟層次」的短長期衝擊" loading="lazy"><div class="img-caption">投影片 41　應用風險矩陣分析法進行「產業層次」衝擊分析
+應用IO, CGE等模型進行「總體經濟層次」的短長期衝擊</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s44_img21.png" alt="投影片 44　社會經濟現況 (2022)：
+GDP總額：4,256,410 百萬美元 (3.74% of worl" loading="lazy"><div class="img-caption">投影片 44　社會經濟現況 (2022)：
+GDP總額：4,256,410 百萬美元 (3.74% of worl</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s45_img23.png" alt="投影片 45　不同層次的衝擊評估規劃 | 地球温暖化對策稅 | 圖片來源：林祥輝 (2019)；原圖片引自：カーボ" loading="lazy"><div class="img-caption">投影片 45　不同層次的衝擊評估規劃 | 地球温暖化對策稅 | 圖片來源：林祥輝 (2019)；原圖片引自：カーボ</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s46_img25.png" alt="投影片 46　圖片來源：林祥輝 (2019)；原圖片引自：カーボンプライシングについて（炭素税） | 圖片來源：自" loading="lazy"><div class="img-caption">投影片 46　圖片來源：林祥輝 (2019)；原圖片引自：カーボンプライシングについて（炭素税） | 圖片來源：自</div></div><div class="img-card"><img src="images/補充四_碳環境稅費_s50_img28.png" alt="投影片 50　碳稅 | 新加坡" loading="lazy"><div class="img-caption">投影片 50　碳稅 | 新加坡</div></div></div>
+  </div>
+</section>
+<section class="chapter type-supp" id="ch-s5">
+  <div class="chapter-header">
+    <div class="chapter-num">S.5</div>
+    <div class="chapter-title">補充教材五：企業內部碳定價（ICP）</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、ICP 的定義與現況</div><div class="callout callout-blue"><strong>企業內部碳定價（ICP）</strong>：企業在自身業務決策中，對其溫室氣體排放設定內部價格的管理工具。<br>全球採用ICP的企業：2014年約150家 → 2023年已逾1,400家；台灣2023年已逾63家。</div><div class="section-title">二、企業採用ICP的驅動因素</div><ul class="notes-list"><li>投資人壓力：CDP 氣候變遷問卷要求揭露ICP使用情況。</li><li>法遵壓力：年報應揭露氣候相關財務資訊（TCFD框架）。</li><li>自主減碳：強化內部減碳決策、管理氣候相關風險。</li></ul><div class="section-title">三、五種 ICP 應用形式</div><div class="table-wrap"><table><thead><tr><th>形式</th><th>說明</th><th>適用階段</th></tr></thead><tbody><tr><td>隱含價格（Implicit Price）</td><td>用過去實際減量投資與減碳量比較，設定碳價作為投資決策依據</td><td>前中期</td></tr><tr><td>影子價格（Shadow Price）</td><td>在投資決策（IRR、NPV）中，納入排碳/減碳量 × 內部碳價格為成本/收入</td><td>前中期</td></tr><tr><td>排放抵換（Carbon Offset）</td><td>比較自行減量成本與購買碳信用成本，選擇較低者</td><td>前中期</td></tr><tr><td>內部碳費（Internal Carbon Fee）</td><td>各事業單位依排放量繳納費用至企業內部「減碳基金」</td><td>中後期</td></tr><tr><td>內部碳交易（Internal Trading）</td><td>企業內部實施類似ETS的排放許可制度，各部門間交易許可</td><td>中後期</td></tr></tbody></table></div><div class="section-title">四、台灣企業ICP應用案例</div><div class="table-wrap"><table><thead><tr><th>企業類型</th><th>代表企業</th><th>碳價水準</th><th>主要用途</th></tr></thead><tbody><tr><td>半導體</td><td>台積電、聯電</td><td>50 USD/t</td><td>減排措施評估</td></tr><tr><td>電子零組件</td><td>華碩</td><td>44 USD/t</td><td>產品生命週期成本計算、供應鏈管理</td></tr><tr><td>電子製造</td><td>台達電、光寶、友達等</td><td>1-300 USD/t</td><td>投資減碳技術和再生能源</td></tr></tbody></table></div>
+
+<div class="section-title">📷 原始講義圖表（共 16/16 張，點擊可放大）</div><div class="img-gallery"><div class="img-card"><img src="images/補充五_內部碳定價_s06_img01.png" alt="投影片 6　企業採用ICP的趨勢 | 6 | 資料來源：中經院整理自 CDP氣候變遷問卷資料，2024年4月。" loading="lazy"><div class="img-caption">投影片 6　企業採用ICP的趨勢 | 6 | 資料來源：中經院整理自 CDP氣候變遷問卷資料，2024年4月。</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s08_img02.png" alt="投影片 8　環境風險與採用ICP的優勢 | 8" loading="lazy"><div class="img-caption">投影片 8　環境風險與採用ICP的優勢 | 8</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s09_img03.png" alt="投影片 9　到底要集滿多少張好寶寶貼紙，才能當減碳模範生？ | 9 | © 2024 中華經濟研究院 (CIER" loading="lazy"><div class="img-caption">投影片 9　到底要集滿多少張好寶寶貼紙，才能當減碳模範生？ | 9 | © 2024 中華經濟研究院 (CIER</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s09_img04.png" alt="投影片 9　到底要集滿多少張好寶寶貼紙，才能當減碳模範生？ | 9 | © 2024 中華經濟研究院 (CIER" loading="lazy"><div class="img-caption">投影片 9　到底要集滿多少張好寶寶貼紙，才能當減碳模範生？ | 9 | © 2024 中華經濟研究院 (CIER</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s16_img06.png" alt="投影片 16　應用方式 | 影子價格指的是決策或行為背後，特定元素變化對意欲產出 (desirable outpu" loading="lazy"><div class="img-caption">投影片 16　應用方式 | 影子價格指的是決策或行為背後，特定元素變化對意欲產出 (desirable outpu</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s22_img08.png" alt="投影片 22　此種工具形式即傳統意義上的ETS，惟它運作的範疇是在公司內部。在運作處理上，將先訂定一個公司整體性的" loading="lazy"><div class="img-caption">投影片 22　此種工具形式即傳統意義上的ETS，惟它運作的範疇是在公司內部。在運作處理上，將先訂定一個公司整體性的</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s23_img09.png" alt="投影片 23　23 | 註：其他指５種主流形式外，企業根據使用情境與需求亦可自行開展的應用形式，如員工獎勵與減碳競" loading="lazy"><div class="img-caption">投影片 23　23 | 註：其他指５種主流形式外，企業根據使用情境與需求亦可自行開展的應用形式，如員工獎勵與減碳競</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s27_img11.png" alt="投影片 27　定價參考：其他競爭對手的定價 | Source: McKinsey(2021)" loading="lazy"><div class="img-caption">投影片 27　定價參考：其他競爭對手的定價 | Source: McKinsey(2021)</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s27_img12.png" alt="投影片 27　定價參考：其他競爭對手的定價 | Source: McKinsey(2021)" loading="lazy"><div class="img-caption">投影片 27　定價參考：其他競爭對手的定價 | Source: McKinsey(2021)</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s29_img13.png" alt="投影片 29　ICP實務設計的四個維度考量 | 資料來源：CDP (2017)" loading="lazy"><div class="img-caption">投影片 29　ICP實務設計的四個維度考量 | 資料來源：CDP (2017)</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s30_img14.png" alt="投影片 30　ICP實務推動的四個流程步驟 | 資料來源：中經院研究團隊整理自CDP 報告" loading="lazy"><div class="img-caption">投影片 30　ICP實務推動的四個流程步驟 | 資料來源：中經院研究團隊整理自CDP 報告</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s35_img15.png" alt="投影片 35　資料來源：Microsoft (2013) | 微軟公司
+內部碳費運作方式" loading="lazy"><div class="img-caption">投影片 35　資料來源：Microsoft (2013) | 微軟公司
+內部碳費運作方式</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s37_img16.png" alt="投影片 37　2.富士通 (Fujitsu) | 圖片來源：《連結》 | 超過減量目標者須繳費
+為實現公司所宣告的" loading="lazy"><div class="img-caption">投影片 37　2.富士通 (Fujitsu) | 圖片來源：《連結》 | 超過減量目標者須繳費
+為實現公司所宣告的</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s41_img18.png" alt="投影片 41　1.台達電子 (DELTA) | 資料來源：https://filecenter.deltaww.c" loading="lazy"><div class="img-caption">投影片 41　1.台達電子 (DELTA) | 資料來源：https://filecenter.deltaww.c</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s42_img19.png" alt="投影片 42　資料來源: https://brandnews.deltaww.com/Home/Continued" loading="lazy"><div class="img-caption">投影片 42　資料來源: https://brandnews.deltaww.com/Home/Continued</div></div><div class="img-card"><img src="images/補充五_內部碳定價_s43_img20.png" alt="投影片 43　2.光寶科技 (LITEON) | 光寶參考台灣碳交易相關法規與中國大陸碳交易市場價格，於2018年" loading="lazy"><div class="img-caption">投影片 43　2.光寶科技 (LITEON) | 光寶參考台灣碳交易相關法規與中國大陸碳交易市場價格，於2018年</div></div></div>
+  </div>
+</section>
+<section class="chapter type-supp" id="ch-blue">
+  <div class="chapter-header">
+    <div class="chapter-num">專①</div>
+    <div class="chapter-title">主題3-2：藍色經濟與永續發展</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、前言：海洋世紀</div><ul class="notes-list"><li>海洋佔地球表面積約 71%，為超過 30 億人提供糧食安全與 80% 的貨物運輸，海底電纜串連國際 98% 的網路。</li><li>全球海洋經濟從 1995 年的 1.3 兆美元成長至 2020 年的 2.6 兆美元（成長 2.5 倍），約佔全球 GDP 3-4%；其中超過 75% 的成長仰賴亞太地區，東亞佔全球海洋經濟成長的 56%（OECD, 2024）。</li><li>全球約 75% 陸域與 66% 海域已受人為影響：約 50% 鹽沼、35% 紅樹林、29% 海草、30% 珊瑚礁已退化或消失。</li><li>聯合國永續發展大會於 2011 年提出藍色經濟（Blue Economy）作為改善海洋永續之途徑，2014 年發布 Blue Economy Concept Paper。</li></ul><div class="section-title">二、臺灣海洋產業發展概況</div><ul class="notes-list"><li>海洋委員會於 <strong>2018 年 4 月 28 日</strong>成立；《海洋基本法》<strong>2019 年</strong>公布；《海洋產業發展條例》<strong>2023 年三讀通過、2024 年 1 月施行</strong>。</li><li>《海洋基本法》第 2 條定義海洋產業：「利用海洋資源與空間進行各項生產及服務活動，或其他與海洋資源相關之產業」。</li><li>《海洋產業發展條例》劃分<strong>四大領域、16 項產業項目</strong>：能源及非生物資源、航運遊憩及運動、水產及生物科技、海事工程及環境資訊。</li><li>產值：2018 年 7,507 億元 → 2022 年 1 兆 7,031 億元（佔 GDP 7.86%）→ 2023 年 1 兆 2,059 億元（佔 GDP 5.4%）。</li></ul><div class="table-wrap"><table><thead><tr><th>2023 年四大支柱</th><th>產值（新臺幣）</th><th>說明</th></tr></thead><tbody><tr><td>海洋運輸及輔助</td><td>4,763 億元</td><td>長榮、陽明、萬海等；逾 90% 進出口貨物依賴海運</td></tr><tr><td>海洋漁業與養殖</td><td>3,297 億元</td><td>遠洋漁業全球領先；養殖具人工繁殖與飼料技術</td></tr><tr><td>海洋遊憩</td><td>2,445 億元</td><td>濱海旅遊、海上運動、郵輪</td></tr><tr><td>遊艇及其他船舶載具</td><td>693 億元</td><td>大型遊艇訂單總長度曾居全球第 4</td></tr></tbody></table></div><div class="section-title">三、歐盟與美國藍色經濟</div><ul class="notes-list"><li><strong>歐盟</strong>：2022 年藍色經濟產值達 8,906 億歐元、近 482 萬個就業機會（佔總就業 2.4%），沿海觀光業貢獻 53% 就業。2025 年 6 月推出《歐洲海洋公約》（European Ocean Pact）。</li><li><strong>美國</strong>：2008-2020 年以總產值計為全球最大海洋經濟體（挪威為佔比最高）。NOAA 2023 年定義藍色經濟為「以永續、公平和社會包容的方式利用海洋和五大湖資源」。2022 年海洋經濟產值 4,762 億美元（佔 GDP 1.8%、近 240 萬個就業），以海洋休閒觀光 2,197 億美元最高。</li></ul><div class="section-title">四、藍色經濟的 3E 原則</div><div class="callout callout-green">1. 經濟上（Economical）是可行的<br>2. 社會上（Equity）是可接受的<br>3. 環境上（Environmental）是和諧的</div><div class="section-title">五、RISC 評估框架與里海實踐</div><ul class="notes-list"><li><strong>RISC 評估框架</strong>：OECD 為確保藍色經濟永續發展，構建城市和地區具有韌性（Resilient）、包容性（Inclusive）、永續性（Sustainable）和循環性（Circular）的藍色經濟評估框架，已蒐集 80 多個城市、地區、流域組織與小島嶼發展中國家（SIDS）的評估結果。</li><li><strong>社會-生態系統（SESs）</strong>：Ostrom（2009）提出，透過鏈結自然與社會科學，促成社會與生態系統朝永續發展。</li><li><strong>里海（satoumi）</strong>：Yanagi（1998）定義為「經由人為的操作或人與自然的互動而使其生產力及生物多樣性均能提高的沿岸海域」，強調人類與海洋共存共生。國內案例：新北卯澳、宜蘭東澳、桃園海岸、台江國家公園。</li></ul><div class="section-title">六、作業練習</div><div class="callout callout-blue">① 海洋委員會何年成立？（2018）<br>② 海洋基本法何年公布？（2019）<br>③ 海洋產業發展條例何時開始實施？（2024 年 1 月）<br>④ 何部法令第二條定義我國海洋產業？（海洋基本法）<br>⑤ 我國海洋產業可分為幾大領域與幾個項目？（四大領域 16 項）<br>⑥ 產值最高的產業項目為何？（海洋運輸及輔助）<br>⑦ 何謂藍色經濟的 3E 原則？　⑧ 何謂 RISC 評估框架？　⑨ 請說明里海（satoumi）的定義？</div>
+  </div>
+</section>
+<section class="chapter type-supp" id="ch-wind">
+  <div class="chapter-header">
+    <div class="chapter-num">專②</div>
+    <div class="chapter-title">專題：離岸風電與環境影響評估</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、海域空間規劃（MSP）</div><ul class="notes-list"><li>MSP（Marine Spatial Planning）：分析與分配人類活動在海域之空間與時間分布的公共過程，以達成生態、經濟與社會目標。</li><li>MSP 應整合進既有的國土空間規劃體系，達成陸海一體（land-sea continuum）的和諧永續發展。</li><li>MSP 可減少使用衝突、降低環境影響、促進相容使用、保存關鍵生態系統服務。</li></ul><div class="section-title">二、臺灣海域管理法制問題</div><ul class="notes-list"><li>《海岸管理法》：「海岸地區」包含近岸海域（三海浬內）。</li><li>《國土計畫法》：「海洋資源地區」定義為「內水與領海」。</li><li>爭點：三海浬到 12 海浬之間如何管理？陸海整合不足、權責機關分散（行政院、內政部、財政部、海巡署）。</li><li>法制演進：濕地保育法（102）→ 海岸管理法（104）→ 國土計畫法（105）→ 海洋基本法（108）→ 海洋產業發展條例、海域管理法、海洋保育法（草案）。</li></ul><div class="section-title">三、臺灣離岸風電政策</div><ul class="notes-list"><li>發展原則：先陸域後離岸、先示範後開發、先淺海後深海。</li><li>目標：2025 年完成離岸 3GW 示範裝置容量；陸域 1.2GW。</li><li>第三階段區塊開發（2021/5/11 公布草案）：2026~2035 年十年共釋出 <strong>15GW</strong>（2026-2031 釋出 9GW、2032-2035 釋出 6GW），每年釋出 1.5GW。</li><li>招商採「先資格審查、後價格評比」：須取得環評初審建議通過、經濟部場址規劃備查、台電併聯審查意見書。</li></ul><div class="section-title">四、環境影響評估制度</div><ul class="notes-list"><li>《環境影響評估法》1994 年 12 月公布：對開發行為或政府政策之環境影響，事前以科學、客觀、綜合之調查、預測、分析及評定，提出環境管理計畫並公開說明及審查。</li><li>程序：第一階段環評 → （有重大影響之虞）第二階段環評 → 審查 → 追蹤考核。</li><li>並非所有開發行為都須環評，僅「特定開發行為」（如位於國家公園、野生動物重要棲息環境、一定開發面積以上等）。</li><li>政策環評：工業、礦業、水利、土地使用、能源、畜牧、交通、廢棄物處理、放射性核廢料等政策有影響環境之虞者。</li></ul><div class="callout callout-orange"><strong>環評制度的問題：</strong>環說書由開發方委託環評公司作業，結果常顧及開發商意向；報告書常見規劃理念錯誤（過度以人類需求為重）、資料缺失、互動分析貧弱、忽視替代方案；「自願進入二階環評」曠日廢時，甚至成為掩飾決策錯誤的藉口。</div><div class="section-title">五、海岸及海上開發環評重點</div><ul class="notes-list"><li>相關計畫的協調：不同使用方式的衝突、新舊工業區競合、區域水資源、公共設施支援配合。</li><li>總量管制：引進廠房／人員規模、廢汙排放量與區位、鄰近開發的加乘效果。</li><li>地區特性掌握：濱海陸地（風速大、沙石多）；海域（海流、漂沙、突堤效應）。</li><li>（填海）抽沙與取土：影響海底地形、海岸地貌；擾動底泥影響漁業資源。</li><li>土地／區域使用規劃：基地配置、環保設施、對區域與利益關係人的影響。</li></ul><div class="section-title">六、離岸風場的衝突與監督</div><ul class="notes-list"><li>已送環評審查的離岸風力開發計畫共 28 件，其中 20 件位在彰化外海。</li><li>漁業衝突：漁業補償、捕獲量低報、電力開發協助金、漁民意見納入、替代工作機會（巡護船、調查船）、箱網養殖。</li><li>生態調查：海洋大學歐慶賢與邵廣昭教授調查發現，離岸風機具人工魚礁的聚魚效果（柱體附著藤壺、軟珊瑚等底棲生物）。</li><li>水下文化資產：開發前應依《水域開發利用前水下文化資產調查及處理辦法》送審調查計畫（範圍含周緣外延至少 500 公尺）。</li><li>環評監督挑戰：「沒船、沒錢、沒人、沒專業」——監測由開發商執行、監督靠環保署、船靠海巡署、鯨豚追蹤靠海保署；環評承諾比制度上路早（鯨豚觀察員、水下噪音監測）。</li></ul><div class="callout callout-blue">「The seas bring us together, they do not separate us.」— 海洋使我們在一起，而不是把我們分開。</div>
+  </div>
+</section>
+<section class="chapter type-supp" id="ch-haigong">
+  <div class="chapter-header">
+    <div class="chapter-num">專③</div>
+    <div class="chapter-title">專題演講：極地任務——海功號南極探索</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">一、時代背景</div><ul class="notes-list"><li>1970 年代能源危機、國際局勢艱困（退出聯合國、美國轉向），政府全力突圍。</li><li>決策考量：磷蝦是極好的蛋白質糧食；南極漁場尚無主權歸屬。</li><li>決策：行政院長蔣經國先生；執行：台灣省水產試驗所鄧火土所長。</li></ul><div class="section-title">二、海功號本事</div><ul class="notes-list"><li>艉拖式試驗船，隸屬水產試驗所，黃正清教授設計、豐國造船廠承造。</li><li>總噸位 711.5、滿載量 150 噸；船名象徵「馬到成功」；1975 年 7 月 12 日下水。</li></ul><div class="section-title">三、南極與磷蝦</div><ul class="notes-list"><li>南極距台北約 12,790 公里，年平均氣溫 −36°C，進入南極圈須通過三個暴風圈（咆哮 40°、狂暴 50°、尖叫 60°）。</li><li>磷蝦（Krill）：節足動物，夜間發磷光；以南冰洋水溫 0°C 上下水域密度最大；是鯨魚主食，形成世界最短的食物鏈：植物性浮游生物 → 南極蝦 → 鬚鯨類。</li><li>資源量極大（FAO 2006 估計總量 1.25~7.25 億噸），資源恢復力極強；可製成蝦乾、蝦蛋白、蝦油、釣餌、飼料等。</li></ul><div class="section-title">四、首航任務與成就</div><ul class="notes-list"><li>任務：探勘開發南極蝦漁場、漁具漁法研發試驗、南極蝦加工試驗、南冰洋生態與資源調查。</li><li>1977 年 3 月 27 日返抵基隆港，歷時 114 天，全程 1 萬 9 千餘浬。</li><li>海功精神象徵臺灣海洋開拓的冒險、進取精神，啟發海洋教育與海洋興國的時代意義。</li></ul>
+  </div>
+</section>
+<section class="chapter type-supp" id="ch-hw">
+  <div class="chapter-header">
+    <div class="chapter-num">HW</div>
+    <div class="chapter-title">作業：供需分析練習題（1150314）</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">分析題</div><div class="callout callout-blue">請分析下列情況對汽車供給需求之變動：<br>① 中東爆發戰爭，導致石油供給減少。<br>② 金融風暴消弭了家計單位的儲蓄與財富。<br>③ 政府對汽車所有人課徵二氧化碳排放稅。<br>④ 人們預期明年汽車降價。<br>⑤ 汽車製造商倒閉。<br>⑥ 廣告競爭增加了摩托車族群的人口。</div><div class="section-title">選擇題（Quizzes）</div><ol class="notes-ol"><li>下列何項因素不會導致橘子需求曲線的移動？(A) 家計單位所得增加 (B) 橘子價格變動 (C) 橘子的購買人數增加 (D) 蘋果的價格變動（橘子的替代品）</li><li>下列何項敘述可以說明供給法則：在其他條件不變下，價格上漲則____。(A) 供給量增加 (B) 生產過程中替代品的供給減少 (C) 供給增加 (D) 生產過程中互補品的供給減少</li><li>在漢堡市場上，下列何者降低漢堡的需求？(A) 製作漢堡的麵包價格上漲 (B) 薯條的價格上漲 (C) 漢堡店的店租上漲 (D) 家計單位所得增加</li><li>在筆記型電腦市場上，下列何者降低筆記型電腦的供給？(A) 桌上型電腦的價格降低（生產過程中的替代品） (B) 預期筆記型電腦未來的價格下降 (C) 對電子產品加稅 (D) 筆記型電腦內建的晶片價格上漲</li><li>金融危機導致美國的家計單位儲蓄減少、失業率上升，則汽車市場的均衡價格____，汽車市場的均衡數量____。(A) 上漲；增加 (B) 上漲；減少 (C) 下降；增加 (D) 下降；減少</li><li>石油供給減少、需求維持不變，則今日油價會造成____，但價格會逐漸____。(A) 過剩；下降 (B) 短缺；下降 (C) 過剩；上漲 (D) 短缺；上漲</li><li>現在很多美國人賣掉原本的車而改買新的節能汽車，其他條件不變下，對二手車市場的影響為____，對節能汽車市場的影響為____。(A) 供給增加且價格下跌；需求增加且價格上漲 (B) 需求減少且價格上漲；供給增加且價格下跌 (C) 需求及供給均減少，價格變化不一定；需求增加且價格上漲 (D) 需求減少、供給增加且價格下跌；供給增加且價格下跌</li></ol><div class="callout callout-green">提示：作答關鍵在區分「需求量變動」（沿線移動，由本身價格引起）與「需求變動」（整線移動，由所得、替代品/互補品價格、預期、人數、偏好引起），參見〈緒論一：供給與需求〉。</div>
+  </div>
+</section>
+<section class="chapter type-ref" id="ch-ref">
+  <div class="chapter-header">
+    <div class="chapter-num">⚡</div>
+    <div class="chapter-title">重要概念速查表</div>
+    <div class="chapter-toggle">▾</div>
+  </div>
+  <div class="chapter-body">
+<div class="section-title">評估方法總整理</div><div class="table-wrap"><table><thead><tr><th>方法</th><th>類型</th><th>可估使用價值</th><th>可估非使用價值</th></tr></thead><tbody><tr><td>市場價值法</td><td>直接市場</td><td>✓</td><td>✗</td></tr><tr><td>旅行成本法（TCM）</td><td>替代市場</td><td>✓</td><td>✗</td></tr><tr><td>特徵資產價值法（HPVM）</td><td>替代市場</td><td>✓</td><td>✗</td></tr><tr><td>特徵工資法（HWM）</td><td>替代市場</td><td>✓</td><td>✗</td></tr><tr><td>趨避行為法（ABM）</td><td>替代市場</td><td>✓</td><td>✗</td></tr><tr><td>劑量反應函數法（DRF）</td><td>替代市場</td><td>✓</td><td>✗</td></tr><tr><td>條件評估法（CVM）</td><td>假設市場</td><td>✓</td><td>✓</td></tr><tr><td>效益移轉法（BT）</td><td>引用既有研究</td><td>✓</td><td>✓</td></tr></tbody></table></div><div class="section-title">關鍵公式彙整</div><div class="table-wrap"><table><thead><tr><th>公式名稱</th><th>公式</th></tr></thead><tbody><tr><td>經濟利潤</td><td>總收入 − 機會成本（顯性+隱性成本）</td></tr><tr><td>短期總成本</td><td>TC = TFC + TVC</td></tr><tr><td>平均總成本</td><td>ATC = AFC + AVC = TC/Q</td></tr><tr><td>污染防制年總成本</td><td>年防治資本成本 + 年防治變動成本</td></tr><tr><td>淨效益現值</td><td>NPV = Σ [(Bt − Ct) / (1+r)ᵗ]</td></tr><tr><td>統計生命的價值</td><td>VSL = WTP / ΔD</td></tr><tr><td>特徵價格函數</td><td>Ph = f(S, N, Q)</td></tr><tr><td>旅遊需求函數</td><td>R = f(Pr, M, Q)</td></tr></tbody></table></div><div class="section-title">碳定價工具比較</div><div class="table-wrap"><table><thead><tr><th>工具</th><th>確定排放量</th><th>確定碳價</th><th>適用對象</th><th>台灣現況</th></tr></thead><tbody><tr><td>ETS（排放交易）</td><td>✓</td><td>✗</td><td>大型排放源</td><td>法有授權，未執行</td></tr><tr><td>碳稅/費</td><td>✗</td><td>✓</td><td>廣泛</td><td>正在推動</td></tr><tr><td>碳信用抵換</td><td>部分</td><td>✗</td><td>自願性</td><td>現行主要工具</td></tr><tr><td>內部碳定價</td><td>✗</td><td>✓</td><td>企業自主</td><td>63+家企業採用</td></tr></tbody></table></div>
+  </div>
+</section>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <button id="lightbox-close">✕</button>
+  <div id="lightbox-nav">
+    <button class="lb-btn" id="lb-prev">‹</button>
+    <button class="lb-btn" id="lb-next">›</button>
+  </div>
+  <img id="lightbox-img" src="" alt="">
+  <div id="lightbox-caption"></div>
+</div>
+
+<button id="back-top" title="回到頂部">↑</button>
+<button id="menu-btn">☰</button>
+
+<script>
+// ── 導覽列高亮（Intersection Observer）──
+const navItems = document.querySelectorAll('.nav-item[data-target]');
+const chapters = document.querySelectorAll('.chapter[id]');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const match = document.querySelector(`.nav-item[data-target="${e.target.id}"]`);
+      if (match) match.classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+chapters.forEach(c => observer.observe(c));
+
+// 點擊導覽
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const t = document.getElementById(item.dataset.target);
+    if (t) {
+      if (t.classList.contains('collapsed')) t.classList.remove('collapsed');
+      t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
+  });
+});
+
+// ── 章節折疊 ──
+document.querySelectorAll('.chapter-header').forEach(h => {
+  h.addEventListener('click', () => {
+    h.closest('.chapter').classList.toggle('collapsed');
+  });
+});
+
+// ── 進度條 ──
+window.addEventListener('scroll', () => {
+  const doc = document.documentElement;
+  const pct = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('back-top').classList.toggle('visible', doc.scrollTop > 400);
+});
+document.getElementById('back-top').addEventListener('click', () =>
+  window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// ── 手機選單 ──
+document.getElementById('menu-btn').addEventListener('click', () =>
+  document.getElementById('sidebar').classList.toggle('open'));
+
+// ── Lightbox ──
+let lbImages = [], lbIndex = 0;
+function openLightbox(imgs, idx) {
+  lbImages = imgs; lbIndex = idx;
+  showLightboxImage();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function showLightboxImage() {
+  const item = lbImages[lbIndex];
+  document.getElementById('lightbox-img').src = item.src;
+  document.getElementById('lightbox-caption').textContent = item.caption || '';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+document.getElementById('lightbox').addEventListener('click', e => {
+  if (e.target === document.getElementById('lightbox')) closeLightbox();
+});
+document.getElementById('lb-prev').addEventListener('click', e => {
+  e.stopPropagation();
+  lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length;
+  showLightboxImage();
+});
+document.getElementById('lb-next').addEventListener('click', e => {
+  e.stopPropagation();
+  lbIndex = (lbIndex + 1) % lbImages.length;
+  showLightboxImage();
+});
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') { lbIndex = (lbIndex-1+lbImages.length)%lbImages.length; showLightboxImage(); }
+  if (e.key === 'ArrowRight') { lbIndex = (lbIndex+1)%lbImages.length; showLightboxImage(); }
+});
+
+// 綁定圖片點擊
+function bindGallery(gallery) {
+  const cards = gallery.querySelectorAll('.img-card');
+  const imgs = Array.from(cards).map(c => ({
+    src: c.querySelector('img').src,
+    caption: c.querySelector('.img-caption')?.textContent || ''
+  }));
+  cards.forEach((card, i) => card.addEventListener('click', () => openLightbox(imgs, i)));
+}
+document.querySelectorAll('.img-gallery').forEach(bindGallery);
+
+// ── 全文搜尋 ──
+const searchInput = document.getElementById('search-input');
+const searchBar   = document.getElementById('search-results-bar');
+let originalHTML  = {};
+
+searchInput.addEventListener('input', () => {
+  const kw = searchInput.value.trim();
+  // 清除舊高亮
+  document.querySelectorAll('.chapter-body').forEach(body => {
+    if (originalHTML[body.closest('.chapter').id]) {
+      body.innerHTML = originalHTML[body.closest('.chapter').id];
+      bindGallery(body.querySelector('.img-gallery') || body);
+    }
+  });
+  if (!kw) { searchBar.style.display='none'; return; }
+
+  let count = 0;
+  const re = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+  document.querySelectorAll('.chapter').forEach(ch => {
+    const body = ch.querySelector('.chapter-body');
+    if (!originalHTML[ch.id]) originalHTML[ch.id] = body.innerHTML;
+    const newHTML = body.innerHTML.replace(re, m => `<mark class="highlight">${m}</mark>`);
+    if (newHTML !== body.innerHTML) {
+      body.innerHTML = newHTML;
+      count++;
+      ch.classList.remove('collapsed');
+    }
+  });
+  searchBar.style.display = 'block';
+  searchBar.textContent = count > 0
+    ? `找到 "${kw}" 的相關章節：${count} 個`
+    : `找不到 "${kw}" 的相關內容`;
+});
+</script>
+</body>
+</html>
