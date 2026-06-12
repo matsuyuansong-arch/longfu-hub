@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>龍福 Hub — 內容入口</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+  <!-- 頁首：顯示使用者資訊與登出按鈕 -->
+  <header class="portal-header">
+    <h1>龍福 Hub</h1>
+    <div class="user-info">
+      <span id="user-email">載入中...</span>
+      <button class="btn-logout" onclick="signOut()">登出</button>
+    </div>
+  </header>
+
+  <!-- 主內容：依角色動態渲染選單 -->
+  <main class="portal-main">
+    <h2>你的內容</h2>
+    <div class="menu-grid" id="menu-grid">
+      <!-- 由 JavaScript 根據角色動態插入卡片 -->
+    </div>
+    <div class="msg-box" id="no-access" style="display:none;">
+      你的帳號尚未被授權，請聯絡管理員。
+    </div>
+  </main>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="assets/auth.js"></script>
+
+  <script>
+    // 各內容區塊的卡片設定
+    // 新增內容區塊時只需在這裡加入項目
+    const SECTION_CARDS = {
+      "training": {
+        icon: "🏨",
+        title: "員工教育訓練",
+        desc: "龍福山莊員工手冊與作業流程",
+        href: "training/index.html"
+      },
+      "travel": {
+        icon: "🚤",
+        title: "旅行社導覽手冊",
+        desc: "導覽解說教學與景點資訊",
+        href: "travel/index.html"
+      },
+      "brand": {
+        icon: "🎨",
+        title: "品牌管理手冊",
+        desc: "島嶼城市品牌設計規範",
+        href: "brand/index.html"
+      },
+      "notes": {
+        icon: "📚",
+        title: "研究所課程筆記",
+        desc: "個人學習記錄",
+        href: "notes/index.html"
+      },
+      "kids": {
+        icon: "🌟",
+        title: "小孩學習筆記",
+        desc: "學習資源與練習材料",
+        href: "kids/index.html"
+      }
+    };
+
+    // 登入守衛：未登入自動跳回 index.html
+    requireLogin().then(({ user, role }) => {
+      // 顯示使用者 email
+      document.getElementById("user-email").textContent = user.email;
+
+      // 依角色取得可存取的 section 清單
+      const allowed = ROLE_ACCESS[role] || [];
+
+      if (allowed.length === 0) {
+        document.getElementById("no-access").style.display = "block";
+        return;
+      }
+
+      // 動態產生選單卡片
+      const grid = document.getElementById("menu-grid");
+      allowed.forEach((section) => {
+        const card = SECTION_CARDS[section];
+        if (!card) return;
+
+        grid.innerHTML += `
+          <a class="menu-card" href="${card.href}">
+            <div class="icon">${card.icon}</div>
+            <h3>${card.title}</h3>
+            <p>${card.desc}</p>
+          </a>`;
+      });
+    });
+  </script>
+
+</body>
+</html>

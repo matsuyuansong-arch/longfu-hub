@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>龍福 Hub — 登入</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-card">
+      <h1>龍福 Hub</h1>
+      <p class="subtitle">請以 Google 帳號登入繼續</p>
+
+      <!-- Google 登入按鈕 -->
+      <button class="btn-google" id="btn-login">
+        <!-- Google 官方 SVG 圖示 -->
+        <svg width="20" height="20" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.7 2.5 30.2 0 24 0 14.7 0 6.7 5.4 2.9 13.3l7.9 6.1C12.6 13 17.9 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/>
+          <path fill="#FBBC05" d="M10.8 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.5 10.8l8.3-6.2z"/>
+          <path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2.1 1.4-4.7 2.2-7.7 2.2-6.1 0-11.4-3.5-13.2-9l-8.3 6.2C6.7 42.6 14.7 48 24 48z"/>
+        </svg>
+        使用 Google 帳號登入
+      </button>
+
+      <!-- 顯示錯誤訊息 -->
+      <p id="error-msg" style="color:#c0392b; margin-top:1rem; font-size:0.85rem; display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Firebase SDK（使用 compat 版本，相容傳統寫法）-->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <!-- 先載入設定，再載入 auth.js -->
+  <script src="firebase-config.js"></script>
+
+  <script>
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    // 若使用者已登入，直接跳過登入頁
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        window.location.href = "portal.html";
+      }
+    });
+
+    // 點擊登入按鈕：彈出 Google 登入視窗
+    document.getElementById("btn-login").addEventListener("click", async () => {
+      try {
+        await firebase.auth().signInWithPopup(provider);
+        // 登入成功 → onAuthStateChanged 會自動導向 portal.html
+      } catch (err) {
+        const msg = document.getElementById("error-msg");
+        msg.textContent = "登入失敗：" + err.message;
+        msg.style.display = "block";
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>龍福 Hub — training</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+  <header class="portal-header">
+    <h1>龍福 Hub</h1>
+    <div class="user-info">
+      <a href="../portal.html" style="color:#aaa; text-decoration:none;">← 返回入口</a>
+      <button class="btn-logout" onclick="signOut()">登出</button>
+    </div>
+  </header>
+  <main class="portal-main">
+    <div class="msg-box">
+      <p style="font-size:2rem; margin-bottom:1rem;">🚧</p>
+      <p>此區塊內容建置中，敬請期待。</p>
+    </div>
+  </main>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+  <script src="../assets/auth.js"></script>
+  <script>
+    // 此頁面需要登入，並檢查對應的 section 權限
+    requireLogin("training");
+  </script>
+</body>
+</html>
